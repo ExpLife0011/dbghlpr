@@ -70,38 +70,15 @@ void main()
 	MessageBoxA(nullptr, a_str, "msgboxa", MB_OK);
 	MessageBoxW(nullptr, u_str, L"msgboxw", MB_OK);
 
+	int begin = GetTickCount();
 	for(int i = 0; i<5; ++i)
 	{
 		printf("step %d\n", i);
 		Sleep(1000);
 	}
 	printf("test end\n");
-}
+	int end = GetTickCount();
 
-//
-//BOOL WINAPI DllMain(
-//	_In_	HINSTANCE hinstDLL,
-//	_In_	DWORD fdwReason,
-//	_In_	LPVOID lpvReserved
-//)
-//{
-//	if (fdwReason == DLL_PROCESS_ATTACH)
-//	{
-//		DisableThreadLibraryCalls(hinstDLL);
-//
-//		//Logv();
-//
-//		HMODULE wldap32 = LoadLibraryA("WLDAP32.dll");
-//		while (1)
-//		{
-//			if (wldap32)
-//			{
-//				//printf("base=>%08x\n", (unsigned long)wldap32);
-//				link_patch(L"WLDAP32.dll");
-//				Sleep(1000);
-//			}
-//		}
-//	}
-//
-//	return TRUE;
-//}
+	printf("count: %d\n", end-begin);
+	_getch();
+}

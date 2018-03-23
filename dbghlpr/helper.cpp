@@ -378,6 +378,34 @@ bool __stdcall helper::resume(unsigned long pid)
 	return TRUE;
 }
 
+bool __stdcall helper::get_thread_id_list(unsigned long pid, std::list<unsigned long> &tid_list)
+{
+	THREADENTRY32 thread_block32 = { 0, };
+	HANDLE h_snapshot = NULL;
+	HANDLE h_thread = NULL;
+	DWORD s = 0;
+
+	h_snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+	if (!h_snapshot)
+		return FALSE;
+
+	thread_block32.dwSize = sizeof(THREADENTRY32);
+
+	if (!Thread32First(h_snapshot, &thread_block32))
+		return FALSE;
+
+	do
+	{
+		if (thread_block32.th32OwnerProcessID == pid)
+		{
+			tid_list.push_back(thread_block32.th32ThreadID);
+		}
+	} while (Thread32Next(h_snapshot, &thread_block32));
+
+	return TRUE;
+}
+
 unsigned char g_backup[1024];
 int helper::patch(void *handle, unsigned long long ip)
 {

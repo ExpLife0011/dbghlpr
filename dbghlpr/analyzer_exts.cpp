@@ -25,22 +25,40 @@ EXT_CLASS_COMMAND(WindbgEngine, calc, "", "{p;ed,o;p;;}" "{exe;b,o;exe;;}")
 	dprintf("%I64x-%I64x, %I64x\n", base, end, end - base);
 }
 
-EXT_CLASS_COMMAND(WindbgEngine, fe, "", "{p;ed,o;p;;}") // find entry
+EXT_CLASS_COMMAND(WindbgEngine, fe, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,o;p;;}") // find entry
 {
-	unsigned long long ptr = GetArgU64("p", FALSE);
+	unsigned long long ptr = 0;
 	unsigned long long base = 0;
 	unsigned long long end = 0;
-	analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
-	if (analyzer_wrapper::check(base, end, ptr - 0x1000))
+
+	if(HasArg("b") && HasArg("l") && HasArg("p"))
 	{
-		base = ptr - 0x1000;
+		base = GetArgU64("b", FALSE);
+		end = GetArgU64("l", FALSE) + base;
+		ptr = GetArgU64("p", FALSE);
+	}
+	else if(HasArg("p"))
+	{
+		 ptr = GetArgU64("p", FALSE);
+		 base = 0;
+		 end = 0;
+
+		analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
+		if (base == 0 || end == 0)
+		{
+			dprintf("%I64x is not exe memory\n", ptr);
+			dprintf("0:000> !fe -b xxxx -l xxxx -p xxxx\n\n");
+			return;
+		}
+
+		if (analyzer_wrapper::check(base, end, ptr - 0x1000))
+		{
+			base = ptr - 0x1000;
+		}
 	}
 
-	dprintf(" [+] %I64x\n", ptr);
-
-	ptr = analyzer_wrapper::find_entry(ptr, base, end - base);
-
 	dprintf(" [-] %I64x-%I64x\n", base, end);
+	ptr = analyzer_wrapper::find_entry(ptr, base, end - base);
 	if (ptr)
 	{
 		dprintf("	[-] %I64x\n", ptr);
@@ -51,12 +69,32 @@ EXT_CLASS_COMMAND(WindbgEngine, fe, "", "{p;ed,o;p;;}") // find entry
 	}
 }
 
-EXT_CLASS_COMMAND(WindbgEngine, fae, "", "{p;ed,o;p;;}") // find all entry
+EXT_CLASS_COMMAND(WindbgEngine, fae, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,o;p;;}") // find all entry
 {
-	unsigned long long ptr = GetArgU64("p", FALSE);
+	unsigned long long ptr = 0;
 	unsigned long long base = 0;
 	unsigned long long end = 0;
-	analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
+
+	if (HasArg("b") && HasArg("l") && HasArg("p"))
+	{
+		base = GetArgU64("b", FALSE);
+		end = GetArgU64("l", FALSE) + base;
+		ptr = GetArgU64("p", FALSE);
+	}
+	else if (HasArg("p"))
+	{
+		ptr = GetArgU64("p", FALSE);
+		base = 0;
+		end = 0;
+
+		analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
+		if (base == 0 || end == 0)
+		{
+			dprintf("%I64x is not exe memory\n", ptr);
+			dprintf("0:000> !fae -b xxxx -l xxxx -p xxxx\n\n");
+			return;
+		}
+	}
 
 	dprintf(" [-] %I64x-%I64x\n", base, end);
 
@@ -81,43 +119,71 @@ EXT_CLASS_COMMAND(WindbgEngine, fae, "", "{p;ed,o;p;;}") // find all entry
 	}
 }
 
-EXT_CLASS_COMMAND(WindbgEngine, caller, "", "{p;ed,o;p;;}") // find caller
+EXT_CLASS_COMMAND(WindbgEngine, caller, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,o;p;;}") // find caller
 {
-	unsigned long long ptr = GetArgU64("p", FALSE);
-	unsigned long long entry_base = 0;
+	unsigned long long ptr = 0;
 	unsigned long long base = 0;
 	unsigned long long end = 0;
+	unsigned long long entry_base = 0;
 	std::list<unsigned long long> l;
 
-	analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
-	if (analyzer_wrapper::check(base, end, ptr - 0x1000))
+	if (HasArg("b") && HasArg("l") && HasArg("p"))
 	{
-		entry_base = ptr - 0x1000;
-	}
-	else
-	{
-		entry_base = base;
-	}
+		base = GetArgU64("b", FALSE);
+		end = GetArgU64("l", FALSE) + base;
+		ptr = GetArgU64("p", FALSE);
 
-	ptr = analyzer_wrapper::find_entry(ptr, entry_base, end - entry_base);
-	analyzer_wrapper::find_caller(ptr, base, end - base, l);
+		ptr = analyzer_wrapper::find_entry(ptr, base, end - base);
+	}
+	else if (HasArg("p"))
+	{
+		ptr = GetArgU64("p", FALSE);
+		base = 0;
+		end = 0;
+
+		analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
+		if (base == 0 || end == 0)
+		{
+			dprintf("%I64x is not exe memory\n", ptr);
+			dprintf("0:000> !caller -b xxxx -l xxxx -p xxxx\n\n");
+			return;
+		}
+
+		if (analyzer_wrapper::check(base, end, ptr - 0x1000))
+		{
+			entry_base = ptr - 0x1000;
+		}
+		else
+		{
+			entry_base = base;
+		}
+
+		ptr = analyzer_wrapper::find_entry(ptr, entry_base, end - entry_base);
+	}
 
 	dprintf(" [-] %I64x-%I64x\n", base, end);
 	dprintf(" [+] %I64x\n", ptr);
-
-	std::list<unsigned long long>::iterator it = l.begin();
-	if (l.size())
+	if (ptr)
 	{
-		dprintf("	[-] ");
-		for (it; it != l.end(); ++it)
+		analyzer_wrapper::find_caller(ptr, base, end - base, l);
+		std::list<unsigned long long>::iterator it = l.begin();
+		if (l.size())
 		{
-			dprintf("%I64x ", *it);
+			dprintf("	[-] ");
+			for (it; it != l.end(); ++it)
+			{
+				dprintf("%I64x ", *it);
+			}
+			dprintf("\n");
 		}
-		dprintf("\n");
+		else
+		{
+			dprintf("	[-] nop\n");
+		}
 	}
 	else
 	{
-		dprintf("	[-] nop\n");
+		dprintf("	[-] zero\n");
 	}
 }
 
@@ -145,7 +211,7 @@ void print_unicode(unsigned char *p, size_t l)
 	}
 }
 
-EXT_CLASS_COMMAND(WindbgEngine, refstr, "", "{p;ed,o;p;;}" "{a;b,o;a;;}") // ref string
+EXT_CLASS_COMMAND(WindbgEngine, refstr, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,o;p;;}") // ref string
 {
 	std::shared_ptr<engine::linker> engine;
 	if (!engine::create<engine_linker>(engine))
@@ -153,14 +219,32 @@ EXT_CLASS_COMMAND(WindbgEngine, refstr, "", "{p;ed,o;p;;}" "{a;b,o;a;;}") // ref
 		return;
 	}
 
-	unsigned long long ptr = GetArgU64("p", FALSE);
+	unsigned long long ptr = 0;
 	unsigned long long base = 0;
 	unsigned long long end = 0;
 	std::multimap<unsigned long long, unsigned long long> ref_map;
 
-	analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
-	analyzer_wrapper::find_reference_value(base, end - base, ref_map);
+	if (HasArg("b") && HasArg("l"))
+	{
+		base = GetArgU64("b", FALSE);
+		end = GetArgU64("l", FALSE) + base;
+	}
+	else if (HasArg("p"))
+	{
+		ptr = GetArgU64("p", FALSE);
+		base = 0;
+		end = 0;
 
+		analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
+		if (base == 0 || end == 0)
+		{
+			dprintf("%I64x is not exe memory\n", ptr);
+			dprintf("0:000> !refstr -b xxxx -l xxxx -p xxxx\n\n");
+			return;
+		}
+	}
+
+	analyzer_wrapper::find_reference_value(base, end - base, ref_map);
 	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
 	unsigned char str_dump[1024];
 	unsigned long long address;
@@ -203,7 +287,7 @@ EXT_CLASS_COMMAND(WindbgEngine, refstr, "", "{p;ed,o;p;;}" "{a;b,o;a;;}") // ref
 	}
 }
 
-EXT_CLASS_COMMAND(WindbgEngine, refexe, "", "{p;ed,o;p;;}" "{a;b,o;a;;}") // ref exe memory
+EXT_CLASS_COMMAND(WindbgEngine, refexe, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,o;p;;}") // ref exe memory
 {
 	std::shared_ptr<engine::linker> engine;
 	if (!engine::create<engine_linker>(engine))
@@ -211,14 +295,32 @@ EXT_CLASS_COMMAND(WindbgEngine, refexe, "", "{p;ed,o;p;;}" "{a;b,o;a;;}") // ref
 		return;
 	}
 
-	unsigned long long ptr = GetArgU64("p", FALSE);
+	unsigned long long ptr = 0;
 	unsigned long long base = 0;
 	unsigned long long end = 0;
 	std::multimap<unsigned long long, unsigned long long> ref_map;
 
-	analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
-	analyzer_wrapper::find_reference_value(base, end - base, ref_map);
+	if (HasArg("b") && HasArg("l"))
+	{
+		base = GetArgU64("b", FALSE);
+		end = GetArgU64("l", FALSE) + base;
+	}
+	else if (HasArg("p"))
+	{
+		ptr = GetArgU64("p", FALSE);
+		base = 0;
+		end = 0;
 
+		analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
+		if (base == 0 || end == 0)
+		{
+			dprintf("%I64x is not exe memory\n", ptr);
+			dprintf("0:000> !refexe -b xxxx -l xxxx -p xxxx\n\n");
+			return;
+		}
+	}
+
+	analyzer_wrapper::find_reference_value(base, end - base, ref_map);
 	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
 	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
 	{
@@ -228,56 +330,49 @@ EXT_CLASS_COMMAND(WindbgEngine, refexe, "", "{p;ed,o;p;;}" "{a;b,o;a;;}") // ref
 			continue;
 		}
 
-		if (mbi.State == MEM_COMMIT && (mbi.Protect == PAGE_EXECUTE_READ || mbi.Protect == PAGE_EXECUTE_READWRITE || mbi.Protect == PAGE_EXECUTE_WRITECOPY))
+		if (!HasArg("d"))
 		{
-			if (analyzer_wrapper::check(base, end, ref_map_it->first))
+			if (mbi.State == MEM_COMMIT && (mbi.Protect == PAGE_EXECUTE_READ || mbi.Protect == PAGE_EXECUTE_READWRITE || mbi.Protect == PAGE_EXECUTE_WRITECOPY))
 			{
-				continue;
+				if (analyzer_wrapper::check(base, end, ref_map_it->first))
+				{
+					continue;
+				}
+
+				char symbol[256] = { 0, };
+				unsigned long long disp = 0;
+				GetSymbol(ref_map_it->first, symbol, &disp);
+
+				char str[1024] = { 0, };
+				unsigned long long address = ref_map_it->second;
+				Disasm(&address, str, false);
+
+				char comment_str[1024];
+				StringCbCopyA(comment_str, strlen(str), str);
+
+				if (disp)
+				{
+					dprintf("%s	; %s+0x%x\n", comment_str, symbol, disp);
+				}
+				else
+				{
+					dprintf("%s	; %s\n", comment_str, symbol);
+				}
 			}
-
-			char symbol[256] = { 0, };
-			unsigned long long disp = 0;
-			GetSymbol(ref_map_it->first, symbol, &disp);
-
-			char str[1024] = { 0, };
-			unsigned long long address = ref_map_it->second;
-			Disasm(&address, str, false);
-
-			char comment_str[1024];
-			StringCbCopyA(comment_str, strlen(str), str);
-
-			if (disp)
+		}
+		else
+		{
+			if (mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && (mbi.Protect == PAGE_EXECUTE_READ || mbi.Protect == PAGE_EXECUTE_READWRITE || mbi.Protect == PAGE_EXECUTE_WRITECOPY))
 			{
-				dprintf("%s	; %s+0x%x\n", comment_str, symbol, disp);
-			}
-			else
-			{
-				dprintf("%s	; %s\n", comment_str, symbol);
+				char str[1024] = { 0, };
+				unsigned long long address = ref_map_it->second;
+				Disasm(&address, str, false);
+
+				char comment_str[1024];
+				StringCbCopyA(comment_str, strlen(str), str);
+
+				dprintf("%s\n", comment_str);
 			}
 		}
 	}
-}
-
-//
-// segment
-//
-EXT_CLASS_COMMAND(WindbgEngine, create, "", "{p;ed,o;p;;}")
-{
-	unsigned long long ptr = GetArgU64("p", FALSE);
-	unsigned long long base = 0;
-	unsigned long long end = 0;
-	analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
-
-	std::map<unsigned long long, segment_descriptor *> segment_descriptor_table = analyzer_wrapper::get_segment_descriptor_table();
-	std::map<unsigned long long, segment_descriptor *>::iterator segment_descriptor_table_it;
-	segment_descriptor_table_it = segment_descriptor_table.find(base);
-
-	if (segment_descriptor_table_it != segment_descriptor_table.end())
-	{
-		dprintf("	[-] found segment descriptor\n\n");
-		return;
-	}
-
-	HANDLE thread_handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)analyzer_wrapper::create_segment_descriptor, &ptr, 0, nullptr);
-	WaitForSingleObject(thread_handle, 1000);
 }

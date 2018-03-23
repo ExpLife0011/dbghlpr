@@ -212,10 +212,10 @@ void analyzer::set_entry_point(std::shared_ptr<engine::linker> engine, unsigned 
 				break;
 			}
 
-			if (mbi.State != MEM_COMMIT || !(mbi.Protect == PAGE_EXECUTE_READ || mbi.Protect == PAGE_EXECUTE_READWRITE || mbi.Protect == PAGE_EXECUTE_WRITECOPY))
-			{
-				break;
-			}
+			//if (mbi.State != MEM_COMMIT || !(mbi.Protect == PAGE_EXECUTE_READ || mbi.Protect == PAGE_EXECUTE_READWRITE || mbi.Protect == PAGE_EXECUTE_WRITECOPY))
+			//{
+			//	break;
+			//}
 		}
 
 		if (is_jmp_code && insn->id != X86_INS_JMP) // �б⹮

@@ -25,6 +25,7 @@ public:
 	void suspend();
 	void resume();
 	void bc();
+	void stack();
 
 	//
 	// memory

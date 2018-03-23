@@ -267,3 +267,136 @@ EXT_CLASS_COMMAND(WindbgEngine, bc, "", "{p;ed,o;p;;}") // bc = break code
 	}
 }
 
+//
+// stack trace
+//
+#include <windows.h>
+#include <TlHelp32.h>
+#include <winternl.h>
+#include <DbgHelp.h>
+#include <stdio.h>
+#include <strsafe.h>
+
+#pragma comment(lib, "dbghelp.lib")
+#pragma comment(lib, "ntdll.lib")
+
+void set_stack_frame(LPSTACKFRAME64 stack_frame, CONTEXT context)
+{
+#ifdef _WIN64
+	stack_frame->AddrPC.Mode = AddrModeFlat;
+	stack_frame->AddrPC.Offset = context.Rip;
+	stack_frame->AddrStack.Mode = AddrModeFlat;
+	stack_frame->AddrStack.Offset = context.Rsp;
+	stack_frame->AddrFrame.Mode = AddrModeFlat;
+	stack_frame->AddrFrame.Offset = context.Rbp;
+#else
+	stack_frame->AddrPC.Mode = AddrModeFlat;
+	stack_frame->AddrPC.Offset = context.Eip;
+	stack_frame->AddrStack.Mode = AddrModeFlat;
+	stack_frame->AddrStack.Offset = context.Esp;
+	stack_frame->AddrFrame.Mode = AddrModeFlat;
+	stack_frame->AddrFrame.Offset = context.Ebp;
+#endif
+}
+
+bool get_symbol_name(HANDLE process_handle ,PVOID address, PULONG64 disp, char *extra, size_t size_of_extra)
+{
+	IMAGEHLP_MODULE64 module_info = { 0, };
+	CHAR buffer[sizeof(SYMBOL_INFO) + 128 * 2] = { 0, };
+	PSYMBOL_INFO symbol_info = (PSYMBOL_INFO)buffer;
+
+	ZeroMemory(extra, size_of_extra);
+
+	module_info.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+	symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
+	symbol_info->MaxNameLen = 128;
+
+	if (SymGetModuleInfo64(process_handle, (DWORD64)address, &module_info))
+	{
+		StringCbCopyA(extra, size_of_extra, module_info.ModuleName);
+
+		if (SymFromAddr(process_handle, (DWORD64)address, disp, symbol_info))
+		{
+			StringCbCatA(extra, size_of_extra, "!");
+			StringCbCatA(extra, size_of_extra, symbol_info->Name);
+		}
+		else
+			*disp = (DWORD64)address - module_info.BaseOfImage;
+
+		return true;
+	}
+
+	return false;
+}
+
+bool stack_trace32(unsigned long pid)
+{
+	HANDLE process_handle = OpenProcess(MAXIMUM_ALLOWED, false, pid);
+	if (!process_handle)
+	{
+		return false;
+	}
+	std::shared_ptr<void> process_handle_closer(process_handle, CloseHandle);
+
+	if (!SymInitialize(process_handle, 0, TRUE))
+	{
+		return false;
+	}
+
+	std::list<unsigned long> thread_id_list;
+	helper::get_thread_id_list(pid, thread_id_list);
+	std::list<unsigned long>::iterator it = thread_id_list.begin();
+	for (it; it != thread_id_list.end(); ++it)
+	{
+		CONTEXT context;
+		STACKFRAME64 stack_frame;
+		ULONG64 disp = 0;
+
+		ZeroMemory(&context, sizeof(context));
+		ZeroMemory(&stack_frame, sizeof(stack_frame));
+
+		HANDLE thread_handle = OpenThread(MAXIMUM_ALLOWED, false, *it);
+		if (!thread_handle)
+		{
+			continue;
+		}
+		std::shared_ptr<void> thread_handle_closer(thread_handle, CloseHandle);
+
+		context.ContextFlags = CONTEXT_ALL;
+
+		if (!GetThreadContext(thread_handle, &context))
+		{
+			continue;
+		}
+		set_stack_frame(&stack_frame, context);
+		dprintf("[ tid=%d(%x)]\n", *it, *it);
+		while (StackWalk64(IMAGE_FILE_MACHINE_I386, process_handle, thread_handle, &stack_frame, &context, NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL))
+		{
+			char extra[MAX_PATH] = { 0, };
+			get_symbol_name(process_handle, (PVOID)stack_frame.AddrPC.Offset, &disp, extra, sizeof(extra));
+
+			dprintf("	%08x ", (DWORD)stack_frame.AddrPC.Offset);
+			dprintf(" %s", extra);
+			dprintf("+0x%x\n", disp);
+		}
+		dprintf("\n");
+	}
+
+	return true;
+}
+
+EXT_CLASS_COMMAND(WindbgEngine, stack, "", "{p;ed,o;p;;}") // bc = break code
+{
+	if (!g_Ext->IsLiveLocalUser())
+		return;
+
+	unsigned long pid;
+	if (g_Ext->m_System->GetCurrentProcessSystemId(&pid) != S_OK)
+	{
+		return;
+	}
+
+	helper::suspend(pid);
+	stack_trace32(pid);
+	helper::resume(pid);
+}

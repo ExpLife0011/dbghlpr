@@ -28,6 +28,7 @@ EXPORTS
 	bc		; To refer to the address specified by debugee, suspend debuggee.
 	suspend	; suspend debuggee.
 	resume	; resume debuggee
+	stack	;
 
 	;
 	; emulator

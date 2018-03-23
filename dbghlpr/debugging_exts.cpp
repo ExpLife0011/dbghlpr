@@ -158,6 +158,18 @@ void __stdcall print32(unsigned long long c, unsigned long long b)
 		dprintf("%08x", c);
 }
 
+void __stdcall reset_thread_context(unsigned long pid, unsigned long tid)
+{
+	std::list<unsigned long> thread_id_list;
+	helper::get_thread_id_list(pid, thread_id_list);
+	std::list<unsigned long>::iterator it = thread_id_list.begin();
+	for (it; it != thread_id_list.end(); ++it)
+	{
+		g_Ext->ExecuteSilent("~~[%x]s", *it);
+	}
+	g_Ext->ExecuteSilent("~~[%x]s", tid);
+}
+
 EXT_CLASS_COMMAND(WindbgEngine, bc, "", "{p;ed,o;p;;}") // bc = break code
 {
 	if (!g_Ext->IsLiveLocalUser())
@@ -207,38 +219,51 @@ EXT_CLASS_COMMAND(WindbgEngine, bc, "", "{p;ed,o;p;;}") // bc = break code
 	}
 
 	unsigned long tid = 0;
+	int begin = GetTickCount();
+	int end = 0;
 	do
 	{
 		tid = helper::check_thread(pid, ip);
-	} while (tid == 0);
+		end = GetTickCount();
+	} while (tid == 0 && !(end-begin >= 20000));
 
 	if (helper::restore(process_handle, tid, ip) == 0)
 	{
-		dprintf("restore fail..\n");
+		g_Ext->Dml("<b><col fg=\"changed\">restore fail\n</col></b>");
+		helper::suspend(pid);
 	}
 	else
 	{
-		g_Ext->Dml("<b><col fg=\"empfg\">break:: tid=>%d(0x%x), ip=>%x\n\n</col></b>", tid, tid, ip);
-
-		cpu_context_type new_context;
-		memset(&new_context, 0, sizeof(new_context));
-
-		if (linker.get_thread_context(&new_context))
+		if (end - begin >= 10000)
 		{
-			dprintf("	eax="), print32(context.rax, new_context.rax), dprintf(" ");
-			dprintf("ebx="), print32(context.rbx, new_context.rbx), dprintf(" ");
-			dprintf("ecx="), print32(context.rcx, new_context.rcx), dprintf(" ");
-			dprintf("edx="), print32(context.rdx, new_context.rdx), dprintf(" ");
-			dprintf("esi="), print32(context.rsi, new_context.rsi), dprintf(" ");
-			dprintf("edi="), print32(context.rdi, new_context.rdi), dprintf("\n");
+			g_Ext->Dml("<b><col fg=\"changed\"> [-] do not use %I64x\n</col></b>", ip);
+			helper::suspend(pid);
+		}
+		else
+		{
+			g_Ext->Dml("<b><col fg=\"empfg\"> [-] tid=>%d(0x%x), ip=>%x\n\n</col></b>", tid, tid, ip);
+			helper::suspend(pid);
+			reset_thread_context(pid, tid);
 
-			dprintf("	eip="), print32(context.rip, new_context.rip), dprintf(" ");
-			dprintf("esp="), print32(context.rsp, new_context.rsp), dprintf(" ");
-			dprintf("ebp="), print32(context.rbp, new_context.rbp), dprintf(" ");
-			dprintf("efl="), print32(context.efl, new_context.efl), dprintf("\n");
+			// print context
+			cpu_context_type new_context;
+			memset(&new_context, 0, sizeof(new_context));
+
+			if (linker.get_thread_context(&new_context))
+			{
+				dprintf("	eax="), print32(context.rax, new_context.rax), dprintf(" ");
+				dprintf("ebx="), print32(context.rbx, new_context.rbx), dprintf(" ");
+				dprintf("ecx="), print32(context.rcx, new_context.rcx), dprintf(" ");
+				dprintf("edx="), print32(context.rdx, new_context.rdx), dprintf(" ");
+				dprintf("esi="), print32(context.rsi, new_context.rsi), dprintf(" ");
+				dprintf("edi="), print32(context.rdi, new_context.rdi), dprintf("\n");
+
+				dprintf("	eip="), print32(context.rip, new_context.rip), dprintf(" ");
+				dprintf("esp="), print32(context.rsp, new_context.rsp), dprintf(" ");
+				dprintf("ebp="), print32(context.rbp, new_context.rbp), dprintf(" ");
+				dprintf("efl="), print32(context.efl, new_context.efl), dprintf("\n");
+			}
 		}
 	}
-
-	helper::suspend(pid);
 }
 

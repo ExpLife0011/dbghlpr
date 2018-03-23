@@ -161,6 +161,7 @@
     <ClCompile Include="engine_linker.cpp" />
     <ClCompile Include="helper.cpp" />
     <ClCompile Include="memory_exts.cpp" />
+    <ClCompile Include="segment_exts.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="analyzer.h" />

@@ -114,6 +114,7 @@ EXT_CLASS_COMMAND(WindbgEngine, pattern, "", "{b;ed,o;p;;}" "{l;ed,o;l;;}" "{pat
 		MEMORY_BASIC_INFORMATION64 mbi;
 		if (linker.virtual_query(base, &mbi))
 		{
+			printf("%08x\n", (unsigned long)mbi.BaseAddress);
 			base += mbi.RegionSize;
 
 			unsigned char *buffer = (unsigned char *)malloc((size_t)mbi.RegionSize);
@@ -146,8 +147,17 @@ EXT_CLASS_COMMAND(WindbgEngine, pattern, "", "{b;ed,o;p;;}" "{l;ed,o;l;;}" "{pat
 		}
 		else
 		{
-			break;
-		}
+			unsigned long long next = linker.get_next_virtual_address(base);
+			if (next < base)
+			{
+				break;
+			}
+			else
+			{
+				base = next;
+				continue;
+			}
+	}
 #ifdef _WIN64
 	} while (base < end);
 #else
@@ -174,7 +184,7 @@ EXT_CLASS_COMMAND(WindbgEngine, chkmem, "", "{exe;b,o;exe;;}") // pea = pe analy
 	do
 	{
 		MEMORY_BASIC_INFORMATION64 mbi = { 0, };
-		if (linker.virtual_query(base, &mbi))
+		if (linker.query_virtual(base, &mbi))
 		{
 			if (g_Ext->HasArg("exe"))
 			{
@@ -216,7 +226,6 @@ EXT_CLASS_COMMAND(WindbgEngine, chkmem, "", "{exe;b,o;exe;;}") // pea = pe analy
 					}
 					else
 					{
-
 						//
 						// ldr 링크 제거
 						// 
@@ -232,7 +241,7 @@ EXT_CLASS_COMMAND(WindbgEngine, chkmem, "", "{exe;b,o;exe;;}") // pea = pe analy
 
 							g_Ext->Dml("<b><col fg=\"changed\"> [ unk img ]	</col></b>");
 							dprintf("%08x - %08x	", (unsigned long)base, (unsigned long)end);
-							//g_Ext->Dml("<b><col fg=\"changed\">[ DANGER ]\n</col></b>");
+							g_Ext->Dml("<b><col fg=\"changed\">[ DANGER ]\n</col></b>");
 						}
 					}
 				}
@@ -245,7 +254,6 @@ EXT_CLASS_COMMAND(WindbgEngine, chkmem, "", "{exe;b,o;exe;;}") // pea = pe analy
 				dprintf(" %08x - %08x	\n", (unsigned long)base, (unsigned long)end);
 			}
 
-			//dprintf("%08x %08x\n", (unsigned long)mbi.BaseAddress, (unsigned long)mbi.RegionSize);
 			base += mbi.RegionSize;
 		}
 		else

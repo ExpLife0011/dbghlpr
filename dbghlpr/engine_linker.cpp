@@ -456,3 +456,13 @@ unsigned long long __stdcall engine_linker::get_teb_address()
 
 	return teb_address;
 }
+
+bool engine_linker::disasm(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_disasm, unsigned long long *next)
+{
+	if (((IDebugControl *)debug_control_)->Disassemble(offset, false, buffer, size_of_buffer, size_of_disasm, next) != S_OK)
+	{
+		return false;
+	}
+
+	return true;
+}

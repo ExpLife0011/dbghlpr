@@ -30,6 +30,8 @@ public:
 	unsigned long long __stdcall get_peb_address();
 	unsigned long long __stdcall get_teb_address();
 
+	bool disasm(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_disasm, unsigned long long *next);
+
 public:
 	engine_linker();
 	~engine_linker();

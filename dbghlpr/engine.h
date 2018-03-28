@@ -32,6 +32,7 @@ public:
 	//
 	void pattern();
 	void chkmem();
+	void graph();
 
 	//
 	// emulator

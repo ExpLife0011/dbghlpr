@@ -271,3 +271,47 @@ EXT_CLASS_COMMAND(WindbgEngine, chkmem, "", "{exe;b,o;exe;;}") // pea = pe analy
 		}
 	} while (base < end);
 }
+
+//
+// install dbgraph, path : %windbg%/dbghlpr/dbgraph.exe + qt dll
+//
+EXT_CLASS_COMMAND(WindbgEngine, graph, "", "{p;ed,o;p;;}")
+{
+	if (g_Ext->IsLiveLocalUser())
+	{
+		return;
+	}
+
+	unsigned long n = 0;
+	if (g_Ext->m_Client5->GetNumberDumpFiles(&n) != S_OK)
+	{
+		return;
+	}
+
+	unsigned long size = 0;
+	unsigned long type = 0;
+	if (g_Ext->m_Client5->GetDumpFile(0, nullptr, 0, &size, nullptr, &type) == S_OK)
+	{
+		char *path = (char *)malloc(size);
+		if (!path)
+		{
+			return;
+		}
+		std::shared_ptr<void> path_closer(path, free);
+		memset(path, 0, size);
+
+		if (g_Ext->m_Client5->GetDumpFile(0, path, size, nullptr, nullptr, &type) != S_OK)
+		{
+			return;
+		}
+
+		char windbg_path[MAX_PATH] = { 0, };
+		GetCurrentDirectoryA(MAX_PATH, windbg_path);
+
+		char cmd[1024] = { 0, };
+		unsigned long long ptr = GetArgU64("p", FALSE);
+
+		sprintf(cmd, "%s\\dbghlpr\\dbgraph.exe -z %s -p %I64x", windbg_path, path, ptr);		
+		WinExec(cmd, SW_SHOW);
+	}
+}

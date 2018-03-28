@@ -21,6 +21,7 @@ EXPORTS
 	;
 	pattern	; Search the memory of the same form as the pattern you entered.
 	chkmem	; Check the allocated virtual memory.
+	graph	;
 
 	;
 	; -pv debugging helper

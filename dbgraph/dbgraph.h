@@ -21,6 +21,7 @@
 #include <engine_linker.h>
 
 #include <analyzer_wrapper.h>
+#include <strsafe.h>
 
 #include "ui_dbgraph.h"
 

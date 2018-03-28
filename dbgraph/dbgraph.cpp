@@ -5,9 +5,10 @@ dbgraph::dbgraph(QWidget *parent)
 {
 	ui.setupUi(this);
 
-	ui.setupUi(this);
-
-	QFile f("css\\style.qss");
+	char css_path[MAX_PATH] = { 0, };
+	GetCurrentDirectoryA(MAX_PATH, css_path);
+	StringCbCatA(css_path, MAX_PATH, "\\css\\style.qss");
+	QFile f(css_path);
 	if (f.exists())
 	{
 		f.open(QFile::ReadOnly | QFile::Text);
@@ -41,9 +42,12 @@ dbgraph::dbgraph(QWidget *parent)
 
 	if (setup())
 	{
-		write();
+		if (write())
+		{
+			this->setWindowTitle(QCoreApplication::arguments().at(2));
+			ui.dissassembly_tab_widget->setCurrentIndex(0);
+		}
 	}
-
 }
 
 dbgraph::~dbgraph()

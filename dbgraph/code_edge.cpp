@@ -18,7 +18,7 @@ void code_graph::edge::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 	painter->save();
 
 	//set painter options
-	painter->setRenderHint(QPainter::Antialiasing);
+	painter->setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
 
 	int lineSize = 3;
 

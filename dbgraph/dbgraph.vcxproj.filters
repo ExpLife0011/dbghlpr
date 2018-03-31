@@ -86,6 +86,9 @@
     <ClCompile Include="syntax_highlighter.cpp">
       <Filter>Source Files\widget</Filter>
     </ClCompile>
+    <ClCompile Include="shadow.cpp">
+      <Filter>Source Files\widget</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="dbgraph.h">
@@ -125,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="register_idx.h">
       <Filter>Source Files\hlpr</Filter>
+    </ClInclude>
+    <ClInclude Include="shadow.h">
+      <Filter>Source Files\widget</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

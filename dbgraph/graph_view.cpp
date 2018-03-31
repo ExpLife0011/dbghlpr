@@ -9,7 +9,7 @@
 GraphView::GraphView(QWidget *parent) : QGraphicsView(parent)
 {
 	scene_ = new QGraphicsScene(this);
-	scene_->setBackgroundBrush(QBrush(Qt::darkGray));
+	scene_->setBackgroundBrush(QBrush(Qt::white));
 
 	setScene(scene_);
 }
@@ -51,8 +51,6 @@ void GraphView::scaleView(qreal factor)
 
 void GraphView::draw(ogdf::Graph *G, ogdf::GraphAttributes *GA, code_graph::tree *t)
 {
-	printf("11111111\n");
-
 	t_ = t;
 
 	ogdf::node v;
@@ -68,15 +66,15 @@ void GraphView::draw(ogdf::Graph *G, ogdf::GraphAttributes *GA, code_graph::tree
 	}
 
 	ogdf::OptimalHierarchyLayout* OHL = new ogdf::OptimalHierarchyLayout;
-	OHL->nodeDistance(170);
-	OHL->layerDistance(170);
-	OHL->weightBalancing(100);
-	OHL->weightSegments(0);
+	OHL->nodeDistance(15.0);
+	OHL->layerDistance(10.0);
+	OHL->weightBalancing(0.0);
+	OHL->weightSegments(0.0);
 
 	ogdf::SugiyamaLayout SL;
 	SL.setRanking(new ogdf::OptimalRanking);
 	SL.setCrossMin(new ogdf::MedianHeuristic);
-	SL.alignSiblings(false);
+	SL.alignSiblings(true);
 	SL.setLayout(OHL);
 	SL.call(*GA);
 
@@ -89,51 +87,35 @@ void GraphView::draw(ogdf::Graph *G, ogdf::GraphAttributes *GA, code_graph::tree
 			qreal x = GA->x(v) - (rect.width() / 2);
 			qreal y = GA->y(v) - (rect.height() / 2);
 			n->setGeometry(x, y, rect.width(), rect.height());
-			code_graph::node::addGraphNodeWidget(x, y, n, scene_);
+			//code_graph::node::addGraphNodeWidget(x, y, n, scene_);
+			n->resize(rect.width()+1, rect.height()+1);
+			//scene_->addWidget(n);
 		}
 	}
-
-	printf("xxxxxxxxxxxxxxxxxx\n");
 
 	ogdf::edge e;
 	forall_edges(e, *G)
 	{
-		printf("1\n");
-
 		const auto bends = GA->bends(e);
 		const auto source = e->source();
 		const auto target = e->target();
-
-		printf("2\n");
 
 		code_graph::node *src = t->find(source);
 		code_graph::node *dest = t->find(target);
 
 		if (!src || !dest)
+		{
 			continue;
-
-		printf("3\n");
+		}
 
 		QRectF sourceRect = src->geometry();
-
-		printf("3.1\n");
-
-		sourceRect.adjust(-4, -4, 4, 4);
-
-		printf("3.2\n");
+		sourceRect.adjust(10, 10, -10, -10);  // const 10 = shadow width in code node
 
 		QRectF targetRect = dest->geometry();
-
-		printf("3.3\n");
-
-		targetRect.adjust(-4, -4, 4, 4);
-
-		printf("5\n");
+		targetRect.adjust(10, 10, -10, -10);  // const 10 = shadow width in code node
 
 		QPointF start(GA->x(source), GA->y(source));
 		QPointF end(GA->x(target), GA->y(target));
-
-		printf("6\n");
 
 		if (src->get_right() && src->get_left() == dest)
 		{
@@ -150,7 +132,20 @@ void GraphView::draw(ogdf::Graph *G, ogdf::GraphAttributes *GA, code_graph::tree
 			code_graph::edge* edge = new code_graph::edge(start, end, bends, sourceRect, targetRect, Qt::blue);
 			scene_->addItem(edge);
 		}
+	}
 
-		printf("7\n\n");
+	forall_nodes(v, *G)
+	{
+		auto n = t->find(v);
+		if (n)
+		{
+			auto rect = n->boundingRect();
+			qreal x = GA->x(v) - (rect.width() / 2);
+			qreal y = GA->y(v) - (rect.height() / 2);
+			n->setGeometry(x, y, rect.width(), rect.height());
+			//code_graph::node::addGraphNodeWidget(x, y, n, scene_);
+			n->resize(rect.width() + 1, rect.height() + 1);
+			scene_->addWidget(n);
+		}
 	}
 }

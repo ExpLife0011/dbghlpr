@@ -11,6 +11,7 @@
 #include <qscrollbar.h>
 
 #include <ogdf/fileformats/GraphIO.h>
+#include <shadow.h>
 
 #pragma comment(lib, "ogdf.lib")
 #pragma comment(lib, "coin.lib")
@@ -49,13 +50,44 @@ namespace code_graph
 		// edge color
 		//
 		QColor edge_color_;
+		int shadow_width_;
 
 	public:
 		explicit code_graph::node(QWidget *parent = 0);
 		~node();
 
-		//void paintEvent(QPaintEvent* event);
+		void paintEvent(QPaintEvent* event);
 		QRectF boundingRect() const;
+
+		//
+		// set shadow effect
+ 		//
+		void setShadowWidth(int w) 
+		{
+			shadow_width_ = w;
+		}
+
+		int shadowWidth() const 
+		{
+			return shadow_width_;
+		}
+
+		void ensureLoaded() 
+		{
+			if (_cashe.isNull()) 
+			{
+				_cashe = QPixmap::fromImage(Shadow::paint(this, rect(), 18.0, shadowWidth(), QColor(0, 0, 0, 128)));
+			}
+		}
+
+		void resizeEvent(QResizeEvent *e) 
+		{
+			ensureLoaded();
+			_cashe = _cashe.scaled(e->size());
+			QWidget::resizeEvent(e);
+		}
+
+		QPixmap _cashe = QPixmap();
 
 	public:
 		void add_left(code_graph::node *left);

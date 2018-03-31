@@ -36,7 +36,7 @@ public:
     {
         if (dbgraphClass->objectName().isEmpty())
             dbgraphClass->setObjectName(QStringLiteral("dbgraphClass"));
-        dbgraphClass->resize(1312, 1055);
+        dbgraphClass->resize(913, 636);
         centralWidget = new QWidget(dbgraphClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);

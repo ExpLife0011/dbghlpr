@@ -1,19 +1,30 @@
 #include "code_graph.h"
+//#define USE_PLAIN_TEXT_WIDGET
+
+int g_shadow_width;
 
 code_graph::node::node(QWidget *parent) : QWidget(parent), left_(nullptr), right_(nullptr)
 {
-	font_ = QFont("Courier New", 8, QFont::DemiBold, false);
+	font_ = QFont("Consolas", 10);
+	g_shadow_width = 10;
+
+	setShadowWidth(g_shadow_width);
+	setWindowFlags(Qt::FramelessWindowHint);
+	setAttribute(Qt::WA_TranslucentBackground, true);
+	setAttribute(Qt::WA_NoSystemBackground, true);
+	setStyleSheet("background:#FFFFFF;");
+	setAutoFillBackground(false);
 }
 
 code_graph::node::~node()
 {
 }
 
-#if 0
 void code_graph::node::paintEvent(QPaintEvent* event)
 {
 	Q_UNUSED(event);
 
+#ifndef USE_PLAIN_TEXT_WIDGET
 	QPainter painter(this);
 	QPen red_pen(Qt::red);
 
@@ -21,21 +32,38 @@ void code_graph::node::paintEvent(QPaintEvent* event)
 
 	QRectF rect = boundingRect();
 
+	//
+	// draw shadow
+	//
+	if (!_cashe.isNull())
+		painter.drawPixmap(QPoint(), _cashe);
+
+	painter.setBrush(palette().background());
+	painter.setPen(Qt::NoPen);
+	painter.setRenderHint(QPainter::Antialiasing, true);
+	auto m = QMargins(shadowWidth(), shadowWidth(), shadowWidth(), shadowWidth());
+	painter.drawRoundedRect(rect.marginsRemoved(m), 2.0, 2.0);
+	painter.setRenderHint(QPainter::Antialiasing, false);
+
+	//
+	// draw text
+	//
 	painter.setPen(Qt::black);
 	painter.setFont(font_);
 
-	QRect textRect = QRect(3, 3, rect.width() - 3, rect.height() - 3);
+	QRect textRect = QRect(g_shadow_width, g_shadow_width, rect.width() - g_shadow_width, rect.height() - g_shadow_width);
 	painter.drawText(textRect, data_);
 
 	QPen pen(Qt::black);
 	pen.setWidth(5);
 
 	painter.setPen(pen);
-	painter.drawRect(rect);
+	//painter.drawRect(rect);
 
 	painter.restore();
-}
 #endif
+
+}
 
 QRectF code_graph::node::boundingRect() const
 {
@@ -47,9 +75,9 @@ void code_graph::node::syntax_highlight()
 	QList<QTextEdit::ExtraSelection> extraSelections;
 	QTextEdit::ExtraSelection selection;
 
-	QColor lineColor = QColor("#509CE4").light(160);
+	//QColor lineColor = QColor("#509CE4").light(160);
 
-	selection.format.setBackground(lineColor);
+	//selection.format.setBackground(lineColor);
 	selection.format.setProperty(QTextFormat::FullWidthSelection, true);
 	selection.cursor = plain_text_edit_->textCursor();
 	selection.cursor.clearSelection();
@@ -111,6 +139,9 @@ void code_graph::node::setting(ogdf::Graph *graph, ogdf::GraphAttributes *graph_
 	//
 	// init
 	//
+	left_ = nullptr;
+	right_ = nullptr;
+
 	graph_ = graph;
 	graph_attribute_ = graph_attribute;
 	data_ = data;
@@ -129,8 +160,7 @@ void code_graph::node::setting(ogdf::Graph *graph, ogdf::GraphAttributes *graph_
 	//
 	//
 	//
-	layout_ = new QVBoxLayout(this);
-
+#ifdef USE_PLAIN_TEXT_WIDGET
 	plain_text_edit_ = new QPlainTextEdit(this);
 	plain_text_edit_->setStyleSheet(
 		"QPlainTextEdit { selection-background-color: transparent;}"
@@ -142,16 +172,14 @@ void code_graph::node::setting(ogdf::Graph *graph, ogdf::GraphAttributes *graph_
 	plain_text_edit_->setMinimumSize(width_, height_ + 15);
 	plain_text_edit_->setFont(font_);
 
-	layout_->addWidget(plain_text_edit_);
-
 	plain_text_edit_->insertPlainText(data_);
 	plain_text_edit_->moveCursor(QTextCursor::Start);
 
-	resize(layout_->sizeHint());
-
-	setLayout(layout_);
+	plain_text_edit_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	plain_text_edit_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 	QObject::connect(plain_text_edit_, SIGNAL(cursorPositionChanged()), this, SLOT(syntax_highlight()));
+#endif
 }
 
 void code_graph::node::set_node_size()
@@ -187,8 +215,18 @@ void code_graph::node::set_node_size()
 
 	QFontMetrics metrics(this->font_);
 
-	width_ = (w * 19) + 3 * 2;
-	height_ = metrics.height() + 3 * ((font_.pointSize() - 1) * l);
+#if 0
+	width_ = ((w * 19) + 3 * 2)/2 - 20;
+	height_ = (metrics.height() + 3 * ((font_.pointSize() - 1) * l))/2 + 7;
+#endif
+	//
+	// set node width and height
+	//
+	if (w < 10)
+		w = 10;
+
+	width_ = (w * 15) + g_shadow_width * 2;
+	height_ = metrics.height() + (g_shadow_width/3) * ((font_.pointSize()) * l);
 }
 
 void code_graph::node::set_edge_color(QColor edge_color)

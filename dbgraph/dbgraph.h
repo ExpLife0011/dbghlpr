@@ -25,6 +25,17 @@
 
 #include "ui_dbgraph.h"
 
+//#define USE_CMD_LOG_VIEWER
+
+typedef struct _tag_node_info_tmp_
+{
+	unsigned long long address;
+	unsigned long long jmp_dest;
+	unsigned long long next_address;
+	bool jmp;
+	code_graph::node * node;
+}node_info_tmp;
+
 class dbgraph : public QMainWindow
 {
 	Q_OBJECT
@@ -49,6 +60,8 @@ private:
 private:
 	bool setup();
 	bool write();
+	node_info_tmp find_node_info(std::list<node_info_tmp> node_info_list, unsigned long long address);
+	void draw_graph();
 
 public slots:
 	void syntax_highlight();

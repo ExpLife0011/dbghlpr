@@ -72,6 +72,7 @@ namespace engine
 		virtual unsigned long long __stdcall get_teb_address() = 0;
 
 		virtual bool disasm(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_disasm, unsigned long long *next) = 0;
+		virtual bool get_symbol_name(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp) = 0;
 	};
 
 	template <typename T1, class T2> bool __stdcall create(std::shared_ptr<T2> &u);

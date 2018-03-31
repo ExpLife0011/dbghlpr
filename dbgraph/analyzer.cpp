@@ -353,7 +353,7 @@ void analyzer::trace(std::shared_ptr<engine::linker> engine, unsigned long long 
 		}
 
 		d->is_jmp_code = is_jmp_code;
-
+		d->instruction_id = insn->id;
 		b.address_map.insert(std::map<unsigned long long, analyzer::detail *>::value_type(address, d));
 		visited.insert(std::set<unsigned long long>::value_type(address));
 

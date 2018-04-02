@@ -36,6 +36,15 @@ typedef struct _tag_node_info_tmp_
 	code_graph::node * node;
 }node_info_tmp;
 
+typedef struct _tag_tmp_node_
+{
+	std::set<unsigned long long> address_set;
+	unsigned long long next_address;
+	unsigned long long jump_address;
+
+	code_graph::node * node;
+}tnode;
+
 class dbgraph : public QMainWindow
 {
 	Q_OBJECT
@@ -63,6 +72,11 @@ private:
 	node_info_tmp find_node_info(std::list<node_info_tmp> node_info_list, unsigned long long address);
 	void draw_graph();
 
+	//
+	// new 
+	//
+	tnode * create_node(ogdf::Graph *g, ogdf::GraphAttributes *ga, std::set<unsigned long long> &address_set, unsigned long long next_address, unsigned long long jump_address);
+	tnode *find(std::list<tnode *> tnode_list, unsigned long long address);
 public slots:
 	void syntax_highlight();
 };

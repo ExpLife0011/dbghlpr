@@ -66,7 +66,7 @@ void GraphView::draw(ogdf::Graph *G, ogdf::GraphAttributes *GA, code_graph::tree
 	}
 
 	ogdf::OptimalHierarchyLayout* OHL = new ogdf::OptimalHierarchyLayout;
-	OHL->nodeDistance(15.0);
+	OHL->nodeDistance(10.0);
 	OHL->layerDistance(10.0);
 	OHL->weightBalancing(0.0);
 	OHL->weightSegments(0.0);

@@ -1,4 +1,5 @@
 #include "code_graph.h"
+#include <strsafe.h>
 //#define USE_PLAIN_TEXT_WIDGET
 
 int g_shadow_width;
@@ -144,8 +145,14 @@ void code_graph::node::setting(ogdf::Graph *graph, ogdf::GraphAttributes *graph_
 
 	graph_ = graph;
 	graph_attribute_ = graph_attribute;
-	data_ = data;
+	data_ = data.toStdString().c_str();
 	edge_color_ = Qt::black;
+
+	print_string_ = (char *)malloc(strlen(data.toStdString().c_str()));
+	if (print_string_)
+	{
+		StringCbCopyA(print_string_, strlen(data.toStdString().c_str()), data.toStdString().c_str());
+	}
 
 	//
 	// set ogdf node
@@ -187,7 +194,7 @@ void code_graph::node::set_node_size()
 	unsigned int w = 0;
 	unsigned int lf = 0;
 	unsigned int l = 0;
-	char *str = (char *)data_.toStdString().c_str();
+	char *str = print_string_;//(char *)data_.toStdString().c_str();
 
 	for (int i = 0; i < strlen(str); ++i)
 	{
@@ -204,29 +211,26 @@ void code_graph::node::set_node_size()
 			++l;
 		}
 	}
+	++l;
+	//printf("l=%d %d\n", l, data_.size());
 
 	if (w <= strlen(&str[lf + 1]))
 	{
 		w = strlen(&str[lf + 1]);
 	}
 
-	if (l >= 10)
-		l += 1;
-
 	QFontMetrics metrics(this->font_);
 
-#if 0
-	width_ = ((w * 19) + 3 * 2)/2 - 20;
-	height_ = (metrics.height() + 3 * ((font_.pointSize() - 1) * l))/2 + 7;
-#endif
 	//
 	// set node width and height
 	//
-	if (w < 10)
-		w = 10;
-
+#if 0 // display size 200%
 	width_ = (w * 15) + g_shadow_width * 2;
 	height_ = metrics.height() + (g_shadow_width/3) * ((font_.pointSize()) * l);
+#else // display size 100%
+	width_ = ((w * 15) + g_shadow_width * 2) / 2;
+	height_ = metrics.height()*l + g_shadow_width + (font_.pointSize() * 2);
+#endif
 }
 
 void code_graph::node::set_edge_color(QColor edge_color)

@@ -88,6 +88,50 @@ bool dbgraph::setup()
 //
 using namespace ogdf;
 
+tnode * dbgraph::create_node(Graph *g, GraphAttributes *ga, std::set<unsigned long long> &address_set, unsigned long long next_address, unsigned long long jump_address)
+{
+	tnode *n = new tnode();
+
+	n->address_set.insert(address_set.begin(), address_set.end());
+	n->next_address = next_address;
+	n->jump_address = jump_address;
+
+	n->node = new code_graph::node;
+	QString print;
+	std::set<unsigned long long>::iterator it = n->address_set.begin();
+	for (it; it != n->address_set.end(); ++it)
+	{
+		char d[1024] = { 0, };
+		unsigned long size_of_disasm = 0;
+		unsigned long long next_address = 0;
+		engine_->disasm(*it, d, sizeof(d), &size_of_disasm, &next_address);
+
+		print += d;
+	}
+	n->node->setting(g, ga, print);
+
+	address_set.clear();
+	return n;
+}
+
+tnode *dbgraph::find(std::list<tnode *> tnode_list, unsigned long long address)
+{
+	tnode *f = nullptr;
+	std::list<tnode *>::iterator it = tnode_list.begin();
+	for (it; it != tnode_list.end(); ++it)
+	{
+		tnode *n = *it;
+		std::set<unsigned long long>::iterator sit = n->address_set.find(address);
+		if (sit != n->address_set.end())
+		{
+			f = n;
+			break;
+		}
+	}
+
+	return f;
+}
+
 bool dbgraph::write()
 {
 	if (!wcsstr(QCoreApplication::arguments().at(3).toStdWString().c_str(), L"-p"))
@@ -186,84 +230,94 @@ bool dbgraph::write()
 		GraphAttributes::edgeStyle);
 
 	print = "";
-	std::list<node_info_tmp> node_info_list;
-	for (address_detail_map_b = b->address_map.begin(); address_detail_map_b != address_detail_map_e; ++address_detail_map_b)
+	std::list<tnode *> temp_node_list;
+	std::set<unsigned long long> address_set;
+	for (address_detail_map_b = b->address_map.begin(); address_detail_map_b != address_detail_map_e; ++address_detail_map_b) // create node
 	{
-
-		char d[1024] = { 0, };
-		unsigned long size_of_disasm = 0;
-		unsigned long long next_address = 0;
-		engine_->disasm(address_detail_map_b->first, d, sizeof(d), &size_of_disasm, &next_address);
-
 		std::multimap<unsigned long long, unsigned long long>::iterator fi = ref_map.find(address_detail_map_b->first);
-		if (fi != ref_map.end() && print.size())
+		if (fi != ref_map.end() && address_set.size())
 		{
-			node_info_tmp ni;
-			ni.address = address_detail_map_b->first;
-			ni.jmp_dest = 0;
-			ni.next_address = next_address;
-			ni.node = new code_graph::node;
-			ni.node->setting(&G, &GA, print);
-			ni.jmp = false;
-
-			node_info_list.push_back(ni);
-
-#ifdef USE_CMD_LOG_VIEWER
-			printf("1. node : %I64x %I64x %I64x\n", ni.address, ni.next_address, ni.jmp_dest);
-#endif
-			print = "";
+			//std::map<unsigned long long, analyzer::detail *>::iterator next = address_detail_map_b;
+			tnode *n = create_node(&G, &GA, address_set, address_detail_map_b->first, 0);
+			temp_node_list.push_back(n);
 		}
 
-		print += d;
+		address_set.insert(address_detail_map_b->first);
 
-		if ((address_detail_map_b->second->is_jmp_code && address_detail_map_b->second->instruction_id != X86_INS_JMP) && print.size())
+		if ((address_detail_map_b->second->is_jmp_code && address_detail_map_b->second->instruction_id != X86_INS_JMP) && address_set.size())
 		{
-			node_info_tmp ni;
+			std::map<unsigned long long, analyzer::detail *>::iterator next = address_detail_map_b;
+			tnode *n = create_node(&G, &GA, address_set, (++next)->first, address_detail_map_b->second->operands[0].value);
 
-			ni.address = address_detail_map_b->first;
-			ni.jmp_dest = address_detail_map_b->second->operands[0].value;
-			ni.next_address = next_address;
-			ni.node = new code_graph::node;
-			ni.node->setting(&G, &GA, print);
-			ni.jmp = false;
-
-			node_info_list.push_back(ni);
-
-#ifdef USE_CMD_LOG_VIEWER
-			printf("2. node : %I64x %I64x %I64x %d\n", ni.address, ni.next_address, ni.jmp_dest, address_detail_map_b->second->instruction_id);
-#endif
-			print = "";
+			temp_node_list.push_back(n);
 		}
-		else if (address_detail_map_b->second->instruction_id == X86_INS_JMP && print.size())
-		{
-			node_info_tmp ni;
-			ni.address = address_detail_map_b->first;
-			ni.jmp_dest = address_detail_map_b->second->operands[0].value;
-			ni.next_address = 0;
-			ni.node = new code_graph::node;
-			ni.node->setting(&G, &GA, print);
-			ni.jmp = true;
 
-			node_info_list.push_back(ni);
-#ifdef USE_CMD_LOG_VIEWER
-			printf("3. node : %I64x %I64x %I64x\n", ni.address, ni.next_address, ni.jmp_dest);
-#endif
-			print = "";
+		if (address_detail_map_b->second->instruction_id == X86_INS_JMP && address_set.size())
+		{
+			tnode *n = create_node(&G, &GA, address_set, 0, address_detail_map_b->second->operands[0].value);
+			temp_node_list.push_back(n);
 		}
 	}
 
-	if (print.size())
+	if (address_set.size())
 	{
-		node_info_tmp ni;
-		ni.address = 0;
-		ni.jmp_dest = 0;
-		ni.next_address = 0;
-		ni.node = new code_graph::node;
-		ni.node->setting(&G, &GA, print);
-
-		node_info_list.push_back(ni);
+		tnode *n = create_node(&G, &GA, address_set, 0, 0);
+		temp_node_list.push_back(n);
 	}
 
+	//printf("node_count : %d\n", temp_node_list.size());
+	std::list<tnode *>::iterator it = temp_node_list.begin();
+	for (it; it != temp_node_list.end(); ++it)
+	{
+		tnode *src = *it;
+#if 0
+		std::set<unsigned long long>::iterator sit;
+		for (sit = src->address_set.begin(); sit != src->address_set.end(); ++sit)
+		{
+			printf("%I64x\n", *sit);
+		}
+		printf("%d %d %I64x %I64x\n", src->node->get_left(), src->node->get_right(), src->next_address, src->jump_address);
+#endif
+		tnode *jump = nullptr;
+		if (src->jump_address)
+		{
+			jump = find(temp_node_list, src->jump_address);
+			//printf("jmp %I64x\n", *(jump->address_set.begin()));
+		}
+
+		tnode *next = nullptr;
+		if (src->next_address)
+		{
+			next = find(temp_node_list, src->next_address);
+			//printf("nxt %I64x\n", *(next->address_set.begin()));
+		}
+		//printf("\n");
+
+		if (jump) // check jxx
+		{
+			if (!src->node->get_left()) // only jump
+			{
+				src->node->add_left(jump->node);
+			}
+		}
+		
+		if(next)
+		{
+			if (!src->node->get_right())
+			{
+				src->node->add_right(next->node);
+			}
+		}
+	}
+
+	tnode *rn = *(temp_node_list.begin());
+	code_graph::node *root = rn->node;
+	code_graph::tree t;
+	t.set_root(root);
+
+	graph_view_->draw(&G, &GA, &t);
+
+#if 0
 	std::list<node_info_tmp>::iterator node_it = node_info_list.begin();
 	for (node_it = node_info_list.begin(); node_it != node_info_list.end(); ++node_it)
 	{
@@ -271,53 +325,73 @@ bool dbgraph::write()
 		printf("node info:: %08x %08x %08x\n", (unsigned long)node_it->address, (unsigned long)node_it->jmp_dest, (unsigned long)node_it->next_address);
 #endif
 		node_info_tmp src = *node_it;
-		node_info_tmp dest = find_node_info(node_info_list, node_it->jmp_dest);
-		node_info_tmp next = find_node_info(node_info_list, node_it->next_address);
+		node_info_tmp dest = { 0, };
+		node_info_tmp next = { 0, };
 
-		if (node_it->jmp_dest)
+		if (node_it->jmp_dest != 0)
 		{
+			dest = find_node_info(node_info_list, node_it->jmp_dest);
+		}
+
+		if (node_it->next_address != 0)
+		{
+			next = find_node_info(node_info_list, node_it->next_address);
+		}
+
 #ifdef USE_CMD_LOG_VIEWER
-			printf("%I64x-%I64x %I64x\n", src.address, next.address, dest.address);
+		printf("1. s=%I64x n=%I64x d=%I64x\n", src.address, next.address, dest.address);
+		printf("1. %d %d %d\n", src.jmp, next.jmp, dest.jmp);
 #endif
+
+		if (dest.address)
+		{
 			if (dest.node)
 			{
 				if (!src.node->get_left())
 				{
+					printf("add l\n");
 					src.node->add_left(dest.node);
 				}
 			}
 
-			if (next.node && !node_it->jmp)
+			if (next.node && src.jmp == false)
 			{
 				if (!src.node->get_right())
 				{
 					src.node->add_right(next.node);
 				}
 
-				if (node_it->jmp_dest > node_it->next_address)
+				if (src.jmp_dest > src.next_address)
 				{
 					std::list<node_info_tmp>::iterator jmp_it = node_it;
 					++jmp_it, ++jmp_it;
+
 					if (jmp_it != node_info_list.end() && jmp_it->address == dest.address)
 					{
 						if (!next.node->get_right())
 						{
+							printf("add r\n");
+
 							next.node->add_right(dest.node);
 						}
 					}
 				}
 			}
 		}
-		else if(node_it->next_address)
+		else if (next.address)
 		{
 			if (next.node)
 			{
 				if (!src.node->get_right())
 				{
+					printf("add r\n");
+
 					src.node->add_right(next.node);
 				}
 			}
 		}
+
+		printf("\n");
 	}
 
 	code_graph::node *root = (node_info_list.begin())->node;
@@ -325,7 +399,7 @@ bool dbgraph::write()
 	t.set_root(root);
 
 	graph_view_->draw(&G, &GA, &t);
-
+#endif
 	return true;
 }
 

@@ -39,6 +39,7 @@ namespace code_graph
 		code_graph::node *right_;
 		QString data_;
 		QFont font_;
+		char *print_string_;
 
 		unsigned long width_;
 		unsigned long height_;

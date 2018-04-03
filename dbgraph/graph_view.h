@@ -13,14 +13,19 @@ class GraphView : public QGraphicsView
 private:
 	code_graph::tree *t_;
 	QGraphicsScene *scene_;
+	QCursor current_curosr_;
+	QPoint point_;
+	bool is_move_;
 
 public:
 	GraphView(QWidget *parent = 0);
 	void draw(ogdf::Graph *G, ogdf::GraphAttributes *GA, code_graph::tree *t);
 
 protected:
-	//void timerEvent(QTimerEvent *event) override;
-	void wheelEvent(QWheelEvent *event) override;
+	virtual void wheelEvent(QWheelEvent *event) override;
+	virtual void mousePressEvent(QMouseEvent *event) override;
+	virtual void mouseMoveEvent(QMouseEvent *event) override;
+	virtual void mouseReleaseEvent(QMouseEvent *event) override;
 	void scaleView(qreal factor);
 };
 

@@ -1,7 +1,11 @@
 #include "dbgraph.h"
+#include <qglobal.h>
 
 QColor lineColor;
 
+//
+//
+//
 dbgraph::dbgraph(QWidget *parent)
 	: QMainWindow(parent)
 {

@@ -12,33 +12,49 @@ GraphView::GraphView(QWidget *parent) : QGraphicsView(parent)
 	scene_->setBackgroundBrush(QBrush(Qt::white));
 
 	setScene(scene_);
+	is_move_ = false;
 }
 
 void GraphView::wheelEvent(QWheelEvent *event)
 {
 	scaleView(pow((qreal)2, -event->delta() / 240.0));
+	update();
 }
 
-#if 0
-void GraphView::timerEvent(QTimerEvent *event)
+void GraphView::mousePressEvent(QMouseEvent *event)
 {
-	Q_UNUSED(event);
-
-	QList<code_graph::node *> node_list;
-	foreach (QGraphicsItem *item, scene()->items())
+	if (event->button() == Qt::LeftButton)
 	{
-		if (code_graph::node * n = qgraphicsitem_cast<code_graph::node *>(item))
-		{
-			node_list << n;
-		}
+		current_curosr_ = cursor();
+		point_ = event->pos();
+		event->accept();
+
+		is_move_ = true;
+	}
+	update();
+}
+
+void GraphView::mouseMoveEvent(QMouseEvent *event)
+{
+	if (is_move_)
+	{
+		horizontalScrollBar()->setValue(horizontalScrollBar()->value() - (event->pos().x() - point_.x()));
+		verticalScrollBar()->setValue(verticalScrollBar()->value() - (event->pos().y() - point_.y()));
+		point_ = event->pos();
+		event->accept();
 	}
 
-	foreach (code_graph::node * n, node_list)
+	update();
+}
+
+void GraphView::mouseReleaseEvent(QMouseEvent *event)
+{
+	if (event->button() == Qt::LeftButton)
 	{
-		
+		event->accept();
+		is_move_ = false;
 	}
 }
-#endif
 
 void GraphView::scaleView(qreal factor)
 {

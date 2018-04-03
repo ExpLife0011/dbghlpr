@@ -1,5 +1,7 @@
 #include "dbgraph.h"
 #include <QtWidgets/QApplication>
+#include <qmessagebox.h>
+#include <qdesktopwidget.h>
 
 int main(int argc, char *argv[])
 {
@@ -17,8 +19,10 @@ int main(int argc, char *argv[])
 	}
 #endif
 
+	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication a(argc, argv);
 	dbgraph w;
 	w.show();
+
 	return a.exec();
 }

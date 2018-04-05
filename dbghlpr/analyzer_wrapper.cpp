@@ -218,6 +218,93 @@ bool analyzer_wrapper::find_caller(unsigned long long ptr, unsigned long long ba
 //
 //
 //
+bool analyzer_wrapper::find_call_code(unsigned long long base, unsigned long long size, std::multimap<unsigned long long, unsigned long long> &ref_map)
+{
+	std::shared_ptr<engine::linker> engine;
+	if (!engine::create<engine_linker>(engine))
+	{
+		return false;
+	}
+
+	analyzer an(base, size);
+	unsigned char *memory_dump = an.alloc(engine);
+	if (!memory_dump)
+	{
+		return false;
+	}
+	std::shared_ptr<void> memory_dump_closer(memory_dump, free);
+
+	std::multimap<unsigned long long, unsigned long long> ref_map_tmp;
+	unsigned long offset = 0;
+	unsigned long long address = base;
+	unsigned long long end = base + size;
+	do
+	{
+		unsigned long long offset = address - base;
+		cs_insn *insn = (cs_insn *)engine->disasm(address, &memory_dump[offset]);
+		if (!insn)
+		{
+			++address;
+			offset = (unsigned long)(address - base);
+			if (address > end)
+				break;
+			continue;
+		}
+
+		if (insn->id == X86_INS_JMP || insn->id == X86_INS_CALL)
+		{
+			cs_x86 *x86 = &(insn->detail->x86);
+			cs_x86_op *op = x86->operands;
+			unsigned long long x64_disp = 0;
+			unsigned long long value = 0;
+			unsigned long r = 0;
+			for (int i = 0; i < x86->op_count; ++i)
+			{
+				cs_x86_op *op = &(x86->operands[i]);
+				switch ((int)op->type)
+				{
+				case X86_OP_IMM:
+					ref_map_tmp.insert(std::multimap<unsigned long long, unsigned long long>::value_type(op->imm, insn->address));
+					break;
+
+				case X86_OP_MEM:
+#ifdef _WIN64
+					x64_disp = insn->address + op->mem.disp + insn->size;
+					r = engine->read_virtual_memory(x64_disp, (unsigned char *)&value, sizeof(unsigned long long));
+					if (r == sizeof(unsigned long long))
+					{
+						ref_map_tmp.insert(std::multimap<unsigned long long, unsigned long long>::value_type(value, insn->address));
+					}
+#else
+					r = engine->read_virtual_memory(op->mem.disp, (unsigned char *)&value, sizeof(unsigned long));
+					if (r == sizeof(unsigned long))
+					{
+						ref_map_tmp.insert(std::multimap<unsigned long long, unsigned long long>::value_type(value, insn->address));
+					}
+#endif
+					break;
+
+				default:
+					break;
+				}
+			}
+		}
+
+		address += insn->size;
+	} while (address < end);
+
+	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map_tmp.begin();
+	for (ref_map_it; ref_map_it != ref_map_tmp.end(); ++ref_map_it)
+	{
+		ref_map.insert(std::multimap<unsigned long long, unsigned long long>::value_type(ref_map_it->first, ref_map_it->second));
+	}
+
+	return true;
+}
+
+//
+//
+//
 bool analyzer_wrapper::find_reference_value(unsigned long long base, unsigned long long size, std::multimap<unsigned long long, unsigned long long> &ref_map)
 {
 	std::shared_ptr<engine::linker> engine;

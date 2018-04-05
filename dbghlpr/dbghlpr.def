@@ -15,7 +15,8 @@ EXPORTS
 	caller	; Get the calling point of the function containing that address.
 	refstr	; Get all strings referenced by the code of the segment containing the address.
 	refexe	; Get all external code referenced by the code of the segment containing the address.
-	
+	findc
+
 	;
 	; memory
 	;

@@ -376,3 +376,122 @@ EXT_CLASS_COMMAND(WindbgEngine, refexe, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed
 		}
 	}
 }
+
+//
+// find call & jmp code
+// 
+bool is_code(unsigned long long base, unsigned long long size, std::multimap<unsigned long long, unsigned long long> ref_map)
+{
+	unsigned long count = 0;
+	unsigned long long end = base + size;
+	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
+
+	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
+	{
+		//dprintf("%I64x call %I64x\n", ref_map_it->second, ref_map_it->first);
+
+		if (!analyzer_wrapper::check(base, end, ref_map_it->first))
+		{
+			continue;
+		}
+
+		unsigned long long ptr = 0;
+		if (analyzer_wrapper::check(base, end, ref_map_it->second - 0x1000))
+		{
+			ptr = ref_map_it->second - 0x1000;
+		}
+		else
+		{
+			ptr = base;
+		}
+
+		unsigned long long e = analyzer_wrapper::find_entry(ref_map_it->second, ptr, size);
+		if (e == 0)
+		{
+			continue;
+		}
+
+		//dprintf("entry %I64x\n", e);
+
+		std::list<unsigned long long> l;
+		analyzer_wrapper::find_caller(e, base, size, l);
+
+		if (l.size())
+		{
+			++count;
+		}
+
+		if (count == 2)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+EXT_CLASS_COMMAND(WindbgEngine, findc, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,o;p;;}") // ref exe memory
+{
+	unsigned long long ptr = GetArgU64("p", FALSE);
+	unsigned long long base = 0;
+	unsigned long long end = 0;
+
+	if (HasArg("b") && HasArg("l"))
+	{
+		base = GetArgU64("b", FALSE);
+		end = GetArgU64("l", FALSE) + base;
+	}
+	else
+	{
+		return;
+	}
+
+	dprintf("base=>%I64x\n", base);
+	dprintf("end=>%I64x\n", end);
+	
+	std::map<unsigned long long, unsigned long long> page_map;
+	do
+	{
+		MEMORY_BASIC_INFORMATION64 mbi = { 0, };
+		if (g_Ext->m_Data2->QueryVirtual(base, &mbi) == S_OK)
+		{
+			dprintf("page %I64x\r", base);
+
+			base = mbi.BaseAddress + mbi.RegionSize;
+			if (mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE)
+			{
+				page_map[mbi.BaseAddress] = mbi.RegionSize;
+			}
+		}
+		else
+		{
+			break;
+		}
+	} while (base < end);
+	dprintf("\r");
+	dprintf("done\n");
+
+	std::shared_ptr<engine::linker> engine;
+	if (!engine::create<engine_linker>(engine))
+	{
+		return;
+	}
+
+	std::map<unsigned long long, unsigned long long>::iterator page_map_it = page_map.begin();
+	for (page_map_it; page_map_it != page_map.end(); ++page_map_it)
+	{
+		dprintf(" [-] %I64x	%I64x	", page_map_it->first, page_map_it->second);
+
+		std::multimap<unsigned long long, unsigned long long> ref_map;
+		analyzer_wrapper::find_call_code(page_map_it->first, page_map_it->second, ref_map);
+
+		if (is_code(page_map_it->first, page_map_it->second, ref_map))
+		{
+			dprintf("[code]\n");
+		}
+		else
+		{
+			dprintf("\n");
+		}
+	}
+}

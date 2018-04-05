@@ -18,6 +18,7 @@ public:
 	void calc();
 
 	void create();
+	void findc();
 
 	//
 	// debugging

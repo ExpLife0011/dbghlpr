@@ -388,40 +388,14 @@ bool is_code(unsigned long long base, unsigned long long size, std::multimap<uns
 
 	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
 	{
-		//dprintf("%I64x call %I64x\n", ref_map_it->second, ref_map_it->first);
-
 		if (!analyzer_wrapper::check(base, end, ref_map_it->first))
 		{
 			continue;
 		}
 
-		unsigned long long ptr = 0;
-		if (analyzer_wrapper::check(base, end, ref_map_it->second - 0x1000))
-		{
-			ptr = ref_map_it->second - 0x1000;
-		}
-		else
-		{
-			ptr = base;
-		}
+		count = ref_map.count(ref_map_it->first);
 
-		unsigned long long e = analyzer_wrapper::find_entry(ref_map_it->second, ptr, size);
-		if (e == 0)
-		{
-			continue;
-		}
-
-		//dprintf("entry %I64x\n", e);
-
-		std::list<unsigned long long> l;
-		analyzer_wrapper::find_caller(e, base, size, l);
-
-		if (l.size())
-		{
-			++count;
-		}
-
-		if (count == 2)
+		if (count >= 2)
 		{
 			return true;
 		}
@@ -430,7 +404,7 @@ bool is_code(unsigned long long base, unsigned long long size, std::multimap<uns
 	return false;
 }
 
-EXT_CLASS_COMMAND(WindbgEngine, findc, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,o;p;;}") // ref exe memory
+EXT_CLASS_COMMAND(WindbgEngine, vmcode, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,o;p;;}") // ref exe memory
 {
 	unsigned long long ptr = GetArgU64("p", FALSE);
 	unsigned long long base = 0;
@@ -460,6 +434,8 @@ EXT_CLASS_COMMAND(WindbgEngine, findc, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,
 			base = mbi.BaseAddress + mbi.RegionSize;
 			if (mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE)
 			{
+				unsigned long long offset = mbi.BaseAddress - mbi.AllocationBase;
+
 				page_map[mbi.BaseAddress] = mbi.RegionSize;
 			}
 		}
@@ -482,8 +458,20 @@ EXT_CLASS_COMMAND(WindbgEngine, findc, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,
 	{
 		dprintf(" [-] %I64x	%I64x	", page_map_it->first, page_map_it->second);
 
+		bool is_pe = false;
 		std::multimap<unsigned long long, unsigned long long> ref_map;
-		analyzer_wrapper::find_call_code(page_map_it->first, page_map_it->second, ref_map);
+		analyzer_wrapper::find_call_code(page_map_it->first, page_map_it->second, ref_map, &is_pe);
+
+		if (is_pe)
+		{
+			dprintf("[pe] ");
+		}
+
+		if (ref_map.size() == 0)
+		{
+			dprintf("\n");
+			continue;
+		}
 
 		if (is_code(page_map_it->first, page_map_it->second, ref_map))
 		{

@@ -18,7 +18,7 @@ public:
 	void calc();
 
 	void create();
-	void findc();
+	void vmcode();
 
 	//
 	// debugging

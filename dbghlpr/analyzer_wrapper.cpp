@@ -218,7 +218,7 @@ bool analyzer_wrapper::find_caller(unsigned long long ptr, unsigned long long ba
 //
 //
 //
-bool analyzer_wrapper::find_call_code(unsigned long long base, unsigned long long size, std::multimap<unsigned long long, unsigned long long> &ref_map)
+bool analyzer_wrapper::find_call_code(unsigned long long base, unsigned long long size, std::multimap<unsigned long long, unsigned long long> &ref_map, bool *is_pe)
 {
 	std::shared_ptr<engine::linker> engine;
 	if (!engine::create<engine_linker>(engine))
@@ -233,6 +233,16 @@ bool analyzer_wrapper::find_call_code(unsigned long long base, unsigned long lon
 		return false;
 	}
 	std::shared_ptr<void> memory_dump_closer(memory_dump, free);
+
+	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)memory_dump;
+	if (dos->e_magic == IMAGE_DOS_SIGNATURE)
+	{
+		PIMAGE_NT_HEADERS nt = (PIMAGE_NT_HEADERS)((unsigned long long)dos + dos->e_lfanew);
+		if (nt->Signature == IMAGE_NT_SIGNATURE)
+		{
+			*is_pe = true;
+		}
+	}
 
 	std::multimap<unsigned long long, unsigned long long> ref_map_tmp;
 	unsigned long offset = 0;
@@ -251,7 +261,7 @@ bool analyzer_wrapper::find_call_code(unsigned long long base, unsigned long lon
 			continue;
 		}
 
-		if (insn->id == X86_INS_JMP || insn->id == X86_INS_CALL)
+		if (insn->id == X86_INS_CALL)
 		{
 			cs_x86 *x86 = &(insn->detail->x86);
 			cs_x86_op *op = x86->operands;

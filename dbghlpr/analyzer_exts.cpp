@@ -393,9 +393,9 @@ bool is_code(unsigned long long base, unsigned long long size, std::multimap<uns
 			continue;
 		}
 
+		//dprintf("%I64x-%I64x, call %I64x %I64x\n", base, end, ref_map_it->second, ref_map_it->first);
 		count = ref_map.count(ref_map_it->first);
-
-		if (count >= 2)
+		if (count >= 3)
 		{
 			return true;
 		}
@@ -404,7 +404,175 @@ bool is_code(unsigned long long base, unsigned long long size, std::multimap<uns
 	return false;
 }
 
-EXT_CLASS_COMMAND(WindbgEngine, vmcode, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed,o;p;;}") // ref exe memory
+bool check_vmprotect(std::multimap<unsigned long long, unsigned long long> ref_map)
+{
+	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
+
+	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
+	{
+		char symbol[256] = { 0, };
+		unsigned long long disp = 0;
+		GetSymbol(ref_map_it->first, symbol, &disp);
+
+		if (strlen(symbol) == 0)
+		{
+			continue;
+		}
+
+		if ((strstr(symbol, "VirtualProtect") || strstr(symbol, "ProtectVirtualMemory")) && disp == 0)
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+bool check_createthread(std::multimap<unsigned long long, unsigned long long> ref_map)
+{
+	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
+
+	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
+	{
+		char symbol[256] = { 0, };
+		unsigned long long disp = 0;
+		GetSymbol(ref_map_it->first, symbol, &disp);
+
+		if (strlen(symbol) == 0)
+		{
+			continue;
+		}
+
+		if ((strstr(symbol, "CreateThread") || strstr(symbol, "CreateRemoteThread")) && disp == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool check_key_state(std::multimap<unsigned long long, unsigned long long> ref_map)
+{
+	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
+
+	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
+	{
+		char symbol[256] = { 0, };
+		unsigned long long disp = 0;
+		GetSymbol(ref_map_it->first, symbol, &disp);
+
+		if (strlen(symbol) == 0)
+		{
+			continue;
+		}
+
+		if ((strstr(symbol, "GetAsyncKeyState") || strstr(symbol, "GetKeyState")) && disp == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool check_d3d9(std::multimap<unsigned long long, unsigned long long> ref_map)
+{
+	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
+
+	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
+	{
+		char symbol[256] = { 0, };
+		unsigned long long disp = 0;
+		GetSymbol(ref_map_it->first, symbol, &disp);
+
+		if (strlen(symbol) == 0)
+		{
+			continue;
+		}
+
+		if ((strstr(symbol, "d3d") || strstr(symbol, "D3D")) && disp == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool check_kernelbase_n_kernel32(std::multimap<unsigned long long, unsigned long long> ref_map)
+{
+	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
+
+	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
+	{
+		char symbol[256] = { 0, };
+		unsigned long long disp = 0;
+		GetSymbol(ref_map_it->first, symbol, &disp);
+
+		if (strlen(symbol) == 0)
+		{
+			continue;
+		}
+
+		if ((strstr(symbol, "kernel") || strstr(symbol, "Kernel") || strstr(symbol, "KERNEL")) && disp == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool check_user32(std::multimap<unsigned long long, unsigned long long> ref_map)
+{
+	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
+
+	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
+	{
+		char symbol[256] = { 0, };
+		unsigned long long disp = 0;
+		GetSymbol(ref_map_it->first, symbol, &disp);
+
+		if (strlen(symbol) == 0)
+		{
+			continue;
+		}
+
+		if ((strstr(symbol, "user") || strstr(symbol, "User") || strstr(symbol, "USER")) && disp == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool check_ntdll(std::multimap<unsigned long long, unsigned long long> ref_map)
+{
+	std::multimap<unsigned long long, unsigned long long>::iterator ref_map_it = ref_map.begin();
+
+	for (ref_map_it; ref_map_it != ref_map.end(); ++ref_map_it)
+	{
+		char symbol[256] = { 0, };
+		unsigned long long disp = 0;
+		GetSymbol(ref_map_it->first, symbol, &disp);
+
+		if (strlen(symbol) == 0)
+		{
+			continue;
+		}
+
+		if ((strstr(symbol, "nt") || strstr(symbol, "Nt") || strstr(symbol, "NT")) && disp == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+EXT_CLASS_COMMAND(WindbgEngine, vmcode, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{ref;b,o;ref;;}")
 {
 	unsigned long long ptr = GetArgU64("p", FALSE);
 	unsigned long long base = 0;
@@ -419,10 +587,9 @@ EXT_CLASS_COMMAND(WindbgEngine, vmcode, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed
 	{
 		return;
 	}
+	bool is_ref_check = HasArg("ref");
 
-	dprintf("base=>%I64x\n", base);
-	dprintf("end=>%I64x\n", end);
-	
+	dprintf("base=>%I64x, end=%I64x\n", base, base+end);
 	std::map<unsigned long long, unsigned long long> page_map;
 	do
 	{
@@ -445,8 +612,10 @@ EXT_CLASS_COMMAND(WindbgEngine, vmcode, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed
 		}
 	} while (base < end);
 	dprintf("\r");
-	dprintf("done\n");
 
+	//
+	//
+	//
 	std::shared_ptr<engine::linker> engine;
 	if (!engine::create<engine_linker>(engine))
 	{
@@ -456,30 +625,92 @@ EXT_CLASS_COMMAND(WindbgEngine, vmcode, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed
 	std::map<unsigned long long, unsigned long long>::iterator page_map_it = page_map.begin();
 	for (page_map_it; page_map_it != page_map.end(); ++page_map_it)
 	{
-		dprintf(" [-] %I64x	%I64x	", page_map_it->first, page_map_it->second);
-
-		bool is_pe = false;
-		std::multimap<unsigned long long, unsigned long long> ref_map;
-		analyzer_wrapper::find_call_code(page_map_it->first, page_map_it->second, ref_map, &is_pe);
-
-		if (is_pe)
+		dprintf("base=%0*I64x size=%0*I64x\r", 16, page_map_it->first, 16, page_map_it->second);
+		if (page_map_it->second > 0x3fffff) // 동작 속도 최적화
 		{
-			dprintf("[pe] ");
-		}
-
-		if (ref_map.size() == 0)
-		{
-			dprintf("\n");
 			continue;
 		}
 
-		if (is_code(page_map_it->first, page_map_it->second, ref_map))
+		bool is_pe = false;
+		std::multimap<unsigned long long, unsigned long long> call_code_map;
+
+		analyzer_wrapper::find_call_code(page_map_it->first, page_map_it->second, call_code_map, &is_pe);
+
+		if (is_pe)
 		{
+			dprintf("base=%0*I64x size=%0*I64x	[pe]", 16, page_map_it->first, 16, page_map_it->second);
+		}
+
+		if (call_code_map.size() == 0)
+		{
+			if (is_pe)
+			{
+				dprintf("\n");
+			}
+			continue;
+		}
+
+		if (is_code(page_map_it->first, page_map_it->second, call_code_map))
+		{
+			dprintf("\r");
+			dprintf("base=%0*I64x size=%0*I64x	", 16, page_map_it->first, 16, page_map_it->second);
+
+			if (is_pe)
+			{
+				dprintf("[pe] ");
+			}
+
+			if (is_ref_check) // 속도가 느려짐, IAT 세팅부를 검색될 수 있음
+			{
+				std::multimap<unsigned long long, unsigned long long> ref_map;
+				analyzer_wrapper::find_reference_value(page_map_it->first, page_map_it->second, ref_map);
+
+				if (check_vmprotect(ref_map))
+				{
+					dprintf("[vm protect] ");
+				}
+
+				if (check_createthread(ref_map))
+				{
+					dprintf("[create thread] ");
+				}
+
+				if (check_key_state(ref_map))
+				{
+					dprintf("[key state] ");
+				}
+			}
+			else // 자료 재수집이 불필요하기에 속도가 빠름, 단 난독화를 찾아낼 수 없음
+			{
+				if (check_kernelbase_n_kernel32(call_code_map))
+				{
+					dprintf("[kernel] ");
+				}
+
+				if (check_user32(call_code_map))
+				{
+					dprintf("[user32] ");
+				}
+
+				if (check_ntdll(call_code_map))
+				{
+					dprintf("[ntdll] ");
+				}
+
+				if (check_d3d9(call_code_map))
+				{
+					dprintf("[d3d9] ");
+				}
+			}
+
 			dprintf("[code]\n");
 		}
-		else
+		else if (is_pe)
 		{
 			dprintf("\n");
 		}
 	}
+
+	dprintf("%*c\r", 50, ' ');
+	dprintf("=====================================================\n");
 }

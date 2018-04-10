@@ -254,11 +254,15 @@ bool analyzer_wrapper::find_call_code(unsigned long long base, unsigned long lon
 		cs_insn *insn = (cs_insn *)engine->disasm(address, &memory_dump[offset]);
 		if (!insn)
 		{
+#if 1
 			++address;
 			offset = (unsigned long)(address - base);
 			if (address > end)
 				break;
 			continue;
+#else
+			break;
+#endif
 		}
 
 		if (insn->id == X86_INS_CALL)
@@ -268,16 +272,19 @@ bool analyzer_wrapper::find_call_code(unsigned long long base, unsigned long lon
 			unsigned long long x64_disp = 0;
 			unsigned long long value = 0;
 			unsigned long r = 0;
-			for (int i = 0; i < x86->op_count; ++i)
-			{
-				cs_x86_op *op = &(x86->operands[i]);
-				switch ((int)op->type)
-				{
-				case X86_OP_IMM:
-					ref_map_tmp.insert(std::multimap<unsigned long long, unsigned long long>::value_type(op->imm, insn->address));
-					break;
 
-				case X86_OP_MEM:
+			if (x86->op_count == 1)
+			{
+				if ((int)op->type == X86_OP_IMM)
+				{
+					r = engine->read_virtual_memory(op->imm, (unsigned char *)&value, sizeof(unsigned long));
+					if (r == sizeof(unsigned long))
+					{
+						ref_map_tmp.insert(std::multimap<unsigned long long, unsigned long long>::value_type(op->imm, insn->address));
+					}
+				}
+				else if ((int)op->type == X86_OP_MEM)
+				{
 #ifdef _WIN64
 					x64_disp = insn->address + op->mem.disp + insn->size;
 					r = engine->read_virtual_memory(x64_disp, (unsigned char *)&value, sizeof(unsigned long long));
@@ -292,10 +299,6 @@ bool analyzer_wrapper::find_call_code(unsigned long long base, unsigned long lon
 						ref_map_tmp.insert(std::multimap<unsigned long long, unsigned long long>::value_type(value, insn->address));
 					}
 #endif
-					break;
-
-				default:
-					break;
 				}
 			}
 		}

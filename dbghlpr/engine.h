@@ -20,6 +20,11 @@ public:
 	void create();
 	void vmcode();
 
+	void chkdr();
+	void ut();
+
+	void test();
+
 	//
 	// debugging
 	//

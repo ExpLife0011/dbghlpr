@@ -42,6 +42,8 @@ void analyzer::free(analyzer::block *b)
 	{
 		::free(dit->second);
 	}
+
+	//::free(b);
 }
 
 void analyzer::free(unsigned char *memory_dump)
@@ -326,6 +328,7 @@ void analyzer::trace(std::shared_ptr<engine::linker> engine, unsigned long long 
 		bool is_jmp_code = cs_insn_group((csh)engine->get_disasm_handle(), insn, X86_GRP_JUMP);
 		
 		analyzer::detail *d = create_address();
+		d->instruction_id = insn->id;
 		d->operand_count = x86->op_count;
 		for (int i = 0; i < x86->op_count; ++i)
 		{

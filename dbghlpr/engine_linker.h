@@ -9,8 +9,9 @@ private:
 	void *debug_data_space_2_;
 	void *debug_advanced_;
 	void *debug_system_objects_;
-	void *debug_control_;
+	void *debug_control_3_;
 	void *debug_register_;
+	void *debug_symbol_;
 
 	csh cs_handle_;
 	cs_insn *insn_;
@@ -31,6 +32,8 @@ public:
 	unsigned long long __stdcall get_teb_address();
 
 	bool disasm(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_disasm, unsigned long long *next);
+
+	bool get_symbol_name(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp);
 
 public:
 	engine_linker();

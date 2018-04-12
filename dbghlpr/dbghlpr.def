@@ -15,7 +15,10 @@ EXPORTS
 	caller	; Get the calling point of the function containing that address.
 	refstr	; Get all strings referenced by the code of the segment containing the address.
 	refexe	; Get all external code referenced by the code of the segment containing the address.
-	vmcode
+	vmcode	;
+	chkdr	;
+	ut		;
+	test	;
 
 	;
 	; memory
@@ -42,3 +45,4 @@ EXPORTS
 	query	; Calculate the address in the emulator memory.
 	trace	; Execute the emulator.
 	context	; Adjust the context of the emulator cpu.
+

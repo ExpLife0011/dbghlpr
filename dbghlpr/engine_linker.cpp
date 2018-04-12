@@ -65,9 +65,14 @@ engine_linker::engine_linker() : insn_(nullptr)
 			debug_system_objects_ = nullptr;
 		}
 
-		if (((IDebugClient *)debug_client_)->QueryInterface(__uuidof(IDebugControl), (void **)&debug_control_) != S_OK)
+		if (((IDebugClient *)debug_client_)->QueryInterface(__uuidof(IDebugControl3), (void **)&debug_control_3_) != S_OK)
 		{
-			debug_control_ = nullptr;
+			debug_control_3_ = nullptr;
+		}
+
+		if (((IDebugClient *)debug_client_)->QueryInterface(__uuidof(IDebugSymbols), (void **)&debug_symbol_) != S_OK)
+		{
+			debug_register_ = nullptr;
 		}
 
 		if (((IDebugClient *)debug_client_)->QueryInterface(__uuidof(IDebugRegisters), (void **)&debug_register_) != S_OK)
@@ -99,12 +104,12 @@ bool __stdcall engine_linker::open(char *path)
 		return false;
 	}
 
-	if (!debug_control_)
+	if (!debug_control_3_)
 	{
 		return false;
 	}
 
-	if (((IDebugControl *)debug_control_)->WaitForEvent(DEBUG_WAIT_DEFAULT, INFINITE) != S_OK)
+	if (((IDebugControl3 *)debug_control_3_)->WaitForEvent(DEBUG_WAIT_DEFAULT, INFINITE) != S_OK)
 	{
 		return false;
 	}
@@ -459,7 +464,27 @@ unsigned long long __stdcall engine_linker::get_teb_address()
 
 bool engine_linker::disasm(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_disasm, unsigned long long *next)
 {
-	if (((IDebugControl *)debug_control_)->Disassemble(offset, false, buffer, size_of_buffer, size_of_disasm, next) != S_OK)
+	//if (((IDebugControl3 *)debug_control_3_)->SetAssemblyOptions(DEBUG_ASMOPT_NO_CODE_BYTES | DEBUG_ASMOPT_IGNORE_OUTPUT_WIDTH) != S_OK)
+	//{
+	//	return false;
+	//}
+
+	if (((IDebugControl3 *)debug_control_3_)->Disassemble(offset, false, buffer, size_of_buffer, size_of_disasm, next) != S_OK)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool engine_linker::get_symbol_name(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp)
+{
+	if (!debug_symbol_)
+	{
+		return false;
+	}
+
+	if (((IDebugSymbols *)debug_symbol_)->GetNameByOffset(offset, buffer, size_of_buffer, size_of_name, disp) != S_OK)
 	{
 		return false;
 	}

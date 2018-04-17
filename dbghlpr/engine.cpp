@@ -19,8 +19,11 @@ HRESULT WindbgEngine::Initialize()
 	ExtensionApis.nSize = sizeof(ExtensionApis);
 	debug_control->GetWindbgExtensionApis64(&ExtensionApis);
 
+	//dprintf("****************************************************\n");
+	//dprintf("*                 dbghlpr ver.1.1.                 *\n");
+	//dprintf("****************************************************\n");
 	dprintf("****************************************************\n");
-	dprintf("*                 dbghlpr ver.1.1.                 *\n");
+	dprintf("*                   dbg ver.1.1.                   *\n");
 	dprintf("****************************************************\n");
 
 	return S_OK;

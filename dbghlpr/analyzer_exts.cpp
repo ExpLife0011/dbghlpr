@@ -238,8 +238,6 @@ EXT_CLASS_COMMAND(WindbgEngine, caller, "", "{b;ed,o;b;;}" "{l;ed,o;l;;}" "{p;ed
 				sprintf(addr, "%I64x", *it);
 
 				g_Ext->DmlCmdLink(addr, cmd), dprintf(" ");
-
-				//dprintf("%I64x ", *it);
 			}
 			dprintf("\n");
 		}
@@ -462,7 +460,7 @@ bool is_code(unsigned long long base, unsigned long long size, std::multimap<uns
 			continue;
 		}
 
-		count = ref_map.count((unsigned long)ref_map_it->first);
+		count = (unsigned long)ref_map.count((unsigned long)ref_map_it->first);
 		if (count >= 3)
 		{
 			return true;
@@ -621,7 +619,7 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 	if (HasArg("entry"))
 	{
 		analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
-		if (analyzer_wrapper::check(base, end, ptr - 0x500)) // ´À·ÁÁü
+		if (analyzer_wrapper::check(base, end, ptr - 0x500)) //
 		{
 			base = ptr - 0x500;
 		}
@@ -630,9 +628,8 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 		// jmp to current ptr 
 		//
 		dprintf("\n");
-		Dml("<link name=\"TOP\"> ; </link>");
-		//dprintf(" ; ");
-		Dml("<link section=\"%I64x\">%s</link>", ptr, "current pointer\n");
+		Dml("<link name=\"TOP\"> ; go to </link>");
+		Dml("<link section=\"%I64x\">%I64x\n</link>", ptr, ptr);
 
 		ptr = analyzer_wrapper::find_entry(ptr, base, end - base);
 		if (ptr == 0)
@@ -649,17 +646,15 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 		std::list<unsigned long long>::iterator it = l.begin();
 		if (l.size())
 		{
-			for (it; it != l.end(); ++it)
+			int i = 0;
+			for (it; it != l.end(); ++it, ++i)
 			{
-				char cmd[500] = { 0, };
-				memset(cmd, 0, sizeof(cmd));
-				sprintf(cmd, "!ut %I64x -entry", *it);
+				if (i % 16 == 0)
+				{
+					dprintf("\n   ");
+				}
 
-				char addr[16];
-				memset(addr, 0, sizeof(addr));
-				sprintf(addr, "%I64x", *it);
-
-				g_Ext->DmlCmdLink(addr, cmd), dprintf(" ");
+				Dml("<link cmd=\"!ut %I64x -entry\">%I64x</link>", *it, *it), dprintf(" ");
 			}
 			dprintf("¡ã\n");
 		}
@@ -672,14 +667,42 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 	}
 	else
 	{
-		MEMORY_BASIC_INFORMATION64 mbi;
-		if (!engine->query_virtual(ptr, &mbi))
+		analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
+
+		//
+		//
+		//
+		dprintf("\n");
+		Dml("<link name=\"TOP\"> ; go to </link>");
+		Dml("<link section=\"%I64x\">%I64x\n</link>", ptr, ptr);
+
+		//
+		// xref to
+		//
+		dprintf(" ; xref ");
+		std::list<unsigned long long> l;
+		analyzer_wrapper::find_caller(ptr, base, end - base, l);
+		std::list<unsigned long long>::iterator it = l.begin();
+		if (l.size())
 		{
-			return;
+			int i = 0;
+			for (it; it != l.end(); ++it, ++i)
+			{
+				if (i % 16 == 0)
+				{
+					dprintf("\n   ");
+				}
+
+				Dml("<link cmd=\"!ut %I64x -entry\">%I64x</link>", *it, *it), dprintf(" ");
+			}
+			dprintf("¡ã\n");
+		}
+		else
+		{
+			dprintf(" nop\n");
 		}
 
-		base = mbi.BaseAddress;
-		end = mbi.BaseAddress + mbi.RegionSize;
+		dprintf("\n");
 	}
 
 	analyzer an(base, end - base);
@@ -705,13 +728,30 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 	std::multimap<unsigned long long, unsigned long long> ref_map;
 	analyzer_wrapper::find_reference_value(ptr, end - ptr, ref_map);
 
-	std::string print;
 	for (address_detail_map_b; address_detail_map_b != address_detail_map_e; ++address_detail_map_b)
 	{
 		std::multimap<unsigned long long, unsigned long long>::iterator fi = ref_map.find(address_detail_map_b->first);
 		if (fi != ref_map.end())
 		{
 			dprintf("\n");
+			std::pair<std::multimap<unsigned long long, unsigned long long>::iterator, std::multimap<unsigned long long, unsigned long long>::iterator> p;
+			p = ref_map.equal_range(address_detail_map_b->first);
+
+			dprintf(" ; ");
+			std::multimap<unsigned long long, unsigned long long>::iterator range_it = p.first;
+			int i = 0;
+			for (range_it; range_it != p.second; ++range_it, ++i)
+			{
+				if (i == 16)
+				{
+					dprintf("\n   ");
+					i = 0;
+				}
+
+				Dml("<link section=\"%I64x\">%I64x</link>", range_it->second, range_it->second);
+				dprintf(" ");
+			}
+			dprintf("¡ã\n");
 		}
 
 		//
@@ -733,8 +773,8 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 			if (address_detail_map_b->second->operands[0].operand_type == X86_OP_IMM)
 			{
 				char cmd[500] = { 0, };
-				sprintf(cmd, "!ut %I64x -entry", address_detail_map_b->second->operands[0].value);
-				//dprintf("%s	; ", comment_str), g_Ext->DmlCmdLink("branch", cmd), dprintf("\n");
+				sprintf(cmd, "!ut %I64x", address_detail_map_b->second->operands[0].value);
+
 				Dml("<link name=\"%I64x\"> %s ; </link>", address_detail_map_b->first, comment_str), g_Ext->DmlCmdLink("call branch", cmd), dprintf("\n");
 			}
 
@@ -744,8 +784,8 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 			else if (address_detail_map_b->second->operands[0].operand_type == X86_OP_MEM)
 			{
 				unsigned long long value = 0;
-				unsigned long r = 0;
-				r = engine->read_virtual_memory(address_detail_map_b->second->operands[0].value, (unsigned char *)&value, sizeof(unsigned long));
+				unsigned long r = engine->read_virtual_memory(address_detail_map_b->second->operands[0].value, (unsigned char *)&value, sizeof(unsigned long));
+
 				if (r == sizeof(unsigned long))
 				{
 					char symbol[256] = { 0, };
@@ -759,30 +799,25 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 					{
 						if (disp)
 						{
-							//dprintf("%s	; %s+0x%x\n", comment_str, symbol, disp);
-							Dml("<link name=\"%I64x\"> %s	; %s+0x%x\n</link>", address_detail_map_b->first, comment_str, symbol, disp);
+							Dml("<link name=\"%I64x\"> %s ; %s+0x%x\n</link>", address_detail_map_b->first, comment_str, symbol, disp);
 						}
 						else
 						{
-							//dprintf("%s	; %s\n", comment_str, symbol);
-							Dml("<link name=\"%I64x\"> %s	; %s\n</link>", address_detail_map_b->first, comment_str, symbol);
+							Dml("<link name=\"%I64x\"> %s ; %s\n</link>", address_detail_map_b->first, comment_str, symbol);
 						}
 					}
 					else
 					{
-						//dprintf("%s	; unknown\n", comment_str);
-						Dml("<link name=\"%I64x\"> %s	; unknown\n</link>", address_detail_map_b->first, comment_str);
+						Dml("<link name=\"%I64x\"> %s ; unknown\n</link>", address_detail_map_b->first, comment_str);
 					}
 				}
 				else
 				{
-					//dprintf("%s", d);
 					Dml("<link name=\"%I64x\"> %s</link>", address_detail_map_b->first, d);
 				}
 			}
 			else
 			{
-				//dprintf("%s", d);
 				Dml("<link name=\"%I64x\"> %s</link>", address_detail_map_b->first, d);
 			}
 		}
@@ -811,6 +846,15 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 					Dml("<link section=\"%I64x\">%s</link>", address_detail_map_b->second->operands[0].value, "jump branch\n");
 				}
 			}
+			else if (address_detail_map_b->second->instruction_id == X86_INS_INT3)
+			{
+				char comment_str[1024];
+				StringCbCopyA(comment_str, strlen(d), d);
+
+				Dml("<link name=\"%I64x\"> %s</link>", address_detail_map_b->first, comment_str);
+				dprintf(" ; debug trap, ");
+				Dml("<link cmd=\"!ut %I64x\">next\n</link>", next_address);
+			}
 			else
 			{
 				Dml("<link name=\"%I64x\"> %s</link>", address_detail_map_b->first, d);
@@ -826,7 +870,6 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 			++address_detail_map_t;
 
 			fi = ref_map.find(address_detail_map_t->first);
-
 			if (fi == ref_map.end())
 			{
 				dprintf("\n");
@@ -835,30 +878,10 @@ EXT_CLASS_COMMAND(WindbgEngine, ut, "", "{;ed,o;ptr;;}" "{entry;b,o;entry;;}")
 	}
 	dprintf("\n");
 
-	char cmd[500];
-
-	memset(cmd, 0, sizeof(cmd));
-	sprintf(cmd, "!graph -p %I64x", ptr);
-	dprintf(" "), g_Ext->DmlCmdLink("[graph]", cmd);
-
-	memset(cmd, 0, sizeof(cmd));
-	sprintf(cmd, "!refstr -b %I64x -l %I64x", ptr, end-ptr);
-	dprintf(" "), g_Ext->DmlCmdLink("[ref str]", cmd);
-
-	memset(cmd, 0, sizeof(cmd));
-	sprintf(cmd, "!refexe -b %I64x -l %I64x", ptr, end - ptr);
-	dprintf(" "), g_Ext->DmlCmdLink("[ref exe]", cmd);
-
-	if (!HasArg("entry"))
-	{
-		analyzer_wrapper::calc_exe_segment(ptr, &base, &end);
-		memset(cmd, 0, sizeof(cmd));
-		sprintf(cmd, "!caller -p %I64x", ptr);
-		dprintf(" "), g_Ext->DmlCmdLink("[xref]", cmd);
-	}
-
-	dprintf(" ");
-	Dml("<link section=\"TOP\">%s</link>", "[top]");
+	dprintf(" "), Dml("<link cmd=\"!graph -p %I64x\">[graph]</link>", ptr);
+	dprintf(" "), Dml("<link cmd=\"!refstr -b %I64x -l %I64x\">[ref str]</link>", ptr, end - ptr);
+	dprintf(" "), Dml("<link cmd=\"!refexe -b %I64x -l %I64x\">[ref str]</link>", ptr, end - ptr);
+	dprintf(" "), Dml("<link section=\"TOP\">%s</link>", "[top]\n");
 	dprintf("\n");
 
 	analyzer::free(b);

@@ -311,7 +311,14 @@ EXT_CLASS_COMMAND(WindbgEngine, graph, "", "{p;ed,o;p;;}")
 		char cmd[1024] = { 0, };
 		unsigned long long ptr = GetArgU64("p", FALSE);
 
-		sprintf(cmd, "%s\\dbghlpr\\dbgraph.exe -z %s -p %I64x", windbg_path, path, ptr);		
-		WinExec(cmd, SW_SHOW);
+		sprintf(cmd, "%s\\dbghlpr\\dbgraph.exe -z %s -p %I64x", windbg_path, path, ptr);
+		if (WinExec(cmd, SW_SHOW) == 33)
+		{
+			dprintf("done\n");
+		}
+		else
+		{
+			dprintf("fail\n");
+		}
 	}
 }

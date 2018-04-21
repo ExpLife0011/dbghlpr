@@ -1,37 +1,10 @@
-Dbghlpr
+![](./doc/img/ut_1.gif)
+
+Dbghlpr : debugging helper
 ==============
-windbg debgging helper
+dbghlpr는 windbg 익스텐션 DLL로, 디버깅 및 분석 과정에 조금 더 편리한 기능을 제공하고자 시작된 프로젝트입니다.
+지원하는 기능 및 사용 방법은 doc, md 파일을 참조 부탁드립니다.
 
-analyzer exts commands
--------
-* [calc](https://github.com/0a777h/dbghlpr/blob/master/doc/calc.md)
-* [fe](https://github.com/0a777h/dbghlpr/blob/master/doc/fe.md)
-* [fae](https://github.com/0a777h/dbghlpr/blob/master/doc/fae.md)
-* [caller](https://github.com/0a777h/dbghlpr/blob/master/doc/caller.md)
-* [refstr](https://github.com/0a777h/dbghlpr/blob/master/doc/refstr.md)
-* [refexe](https://github.com/0a777h/dbghlpr/blob/master/doc/refexe.md)
-
-memory checker exts commands
--------
-* [chkmem](https://github.com/0a777h/dbghlpr/blob/master/doc/chkmem.md)
-* [pattern](https://github.com/0a777h/dbghlpr/blob/master/doc/pattern.md)
-
-live debugging helper exts commands
--------
-* [bc](https://github.com/0a777h/dbghlpr/blob/master/doc/bc.md)
-* [suspend](https://github.com/0a777h/dbghlpr/blob/master/doc/suspend.md)
-* [resume](https://github.com/0a777h/dbghlpr/blob/master/doc/resume.md)
-
-emulator exts commands
--------
-* [open](https://github.com/0a777h/dbghlpr/blob/master/doc/open.md)
-* [alloc](https://github.com/0a777h/dbghlpr/blob/master/doc/alloc.md)
-* [write](https://github.com/0a777h/dbghlpr/blob/master/doc/write.md)
-* [read](https://github.com/0a777h/dbghlpr/blob/master/doc/read.md)
-* [query](https://github.com/0a777h/dbghlpr/blob/master/doc/query.md)
-* [trace](https://github.com/0a777h/dbghlpr/blob/master/doc/trace.md)
-* [context](https://github.com/0a777h/dbghlpr/blob/master/doc/context.md)
----
 credits
 -------
 * disassembly powered by [capstone engine](https://github.com/aquynh/capstone)

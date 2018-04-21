@@ -5,4 +5,4 @@ Search the memory of the same form as the pattern you entered.
 * -l : size
 * -pattern : pattern
 ---
-![](./img/pattern.gif)
+![](../img/pattern.gif)

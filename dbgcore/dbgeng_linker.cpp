@@ -138,6 +138,11 @@ unsigned long __stdcall engine_linker::read_virtual_memory(unsigned long long vi
 {
 	unsigned long readn = 0;
 
+	if (!debug_data_space_2_)
+	{
+		return false;
+	}
+
 	if (((IDebugDataSpaces2 *)debug_data_space_2_)->ReadVirtual(virtual_address, out_memory, read_size, &readn) != S_OK)
 	{
 		return 0;

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cs_util.h" />
+    <ClInclude Include="cs_x86_enum.h" />
     <ClInclude Include="dbgeng_linker.h" />
     <ClInclude Include="dbgeng_util.h" />
     <ClInclude Include="interface.h" />

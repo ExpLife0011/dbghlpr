@@ -1,6 +1,8 @@
 #ifndef __DEFINE_DBG_CORE__
 #define __DEFINE_DBG_CORE__
 
+#include "cs_x86_enum.h"
+
 typedef struct uuid_type {
 	unsigned long  Data1;
 	unsigned short Data2;
@@ -657,6 +659,8 @@ typedef struct __DBG_THREAD_CONTEXT
 //
 //
 #define DBGENG_DEBUGCONTROL_ID	0
+#define __IN
+#define __OUT
 
 namespace dbg
 {
@@ -687,51 +691,57 @@ namespace dbg
 
 		static dbg::util *create(uuid_type id);
 
-		///
+		// capstone engine
 		typedef struct _tag_cs_x86_operand_information
 		{
-			long operand_type;
-			long long value;
+			__OUT long operand_type;
+			__OUT long long value;
 		}cs_operand;
 
 		typedef struct _tag_cs_x86_context_type
 		{
-			unsigned long instruction_id;
-			unsigned long instruction_size;
-			unsigned long instruction_group;
+			__IN unsigned long bit;
 
-			unsigned long operand_count;
-			cs_operand operands[8];
+			__OUT unsigned long instruction_id;
+			__OUT unsigned long instruction_size;
+			__OUT unsigned long instruction_group;
 
-			unsigned char dump[16];
+			__OUT unsigned long operand_count;
+			__OUT cs_operand operands[8];
+
+			__OUT unsigned char dump[16];
 		}cs_x86_context;
-		///
+
+		// dbgeng
 		typedef struct _tag_dbgeng_disasm_context_type
 		{
-			dbg::core *c;
+			__IN dbg::core *c;
+			__IN char *path; // input path
+			__IN unsigned long pid; // input pid
 
-			char *buffer;
-			unsigned long size_of_buffer;
+			__IN char *buffer; // output string
+			__IN unsigned long size_of_buffer;
 
-			unsigned long *size_of_name;
-			unsigned long long *next_address;
+			__OUT unsigned long *size_of_name;
+			__OUT unsigned long long *next_address;
 		}dbgeng_disasm_context;
-		///
+
+		static void init_context(dbgeng_disasm_context *ctx);
+		static void init_context(cs_x86_context *ctx);
 
 		virtual void get_uuid(uuid_type *iid) = 0;
-
-		virtual bool open(unsigned long arch, unsigned long mode) = 0;
 		virtual bool disasm(unsigned long long address, unsigned char *table, void *context, size_t context_size) = 0;
 	};
 
-#define IID_DBGENG_CORE		0
-#define IID_WINAPI_CORE		1
-#define IID_REMOTEAPI_CORE	2
+#define IID_DBGENG_CORE		0xC0000001
+#define IID_WINAPI_CORE		0xC0000002
+#define IID_REMOTEAPI_CORE	0xC0000003
 
-#define IID_CS_UTIL			3
-#define IID_DBGENG_UTIL		4
+#define IID_CS_UTIL			0xC0000004
+#define IID_DBGENG_UTIL		0xC0000005
 
-#define IID_DRVAPI_CORE		5
+#define IID_DRVAPI_CORE		0xC0000006
+#define IID_UC_CORE			0xC0000007
 
 	namespace linker
 	{
@@ -747,23 +757,14 @@ namespace dbg
 
 			__declspec(dllexport) bool __stdcall get_thread_context(dbg::core *c, cpu_context_type *context);
 			__declspec(dllexport) bool get_symbol_name(dbg::core *c, unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp);
-
-			//
-			//
-			//
-			__declspec(dllexport) bool open(unsigned long iid, char *path);
-			__declspec(dllexport) bool open(unsigned long iid, unsigned long pid);
-
-			__declspec(dllexport) bool query_virtual_memory(unsigned long iid, unsigned long long virtual_address, void *out_memory_info);
-			__declspec(dllexport) unsigned long __stdcall read_virtual_memory(unsigned long iid, unsigned long long virtual_address, unsigned char *out_memory, unsigned long read_size);
-
-			__declspec(dllexport) bool __stdcall get_thread_context(unsigned long iid, cpu_context_type *context);
-			__declspec(dllexport) bool get_symbol_name(unsigned long iid, unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp);
 		}
 
 		namespace util
 		{
 			__declspec(dllexport) dbg::util *create(unsigned long id);
+
+			__declspec(dllexport) bool disasm(dbg::util *u, unsigned long long address, unsigned char *table, void *context, size_t context_size);
+			__declspec(dllexport) bool disasm(unsigned long id, unsigned long long address, unsigned char *table, void *context, size_t context_size);
 		}
 	}
 }

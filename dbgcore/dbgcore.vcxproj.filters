@@ -8,10 +8,13 @@
       <Filter>dbg\core\dbgeng</Filter>
     </ClInclude>
     <ClInclude Include="cs_util.h">
-      <Filter>dbg\util</Filter>
+      <Filter>dbg\util\cs</Filter>
     </ClInclude>
     <ClInclude Include="dbgeng_util.h">
-      <Filter>dbg\util</Filter>
+      <Filter>dbg\util\dbgeng</Filter>
+    </ClInclude>
+    <ClInclude Include="cs_x86_enum.h">
+      <Filter>dbg</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -22,10 +25,10 @@
       <Filter>dbg\core\dbgeng</Filter>
     </ClCompile>
     <ClCompile Include="cs_util.cpp">
-      <Filter>dbg\util</Filter>
+      <Filter>dbg\util\cs</Filter>
     </ClCompile>
     <ClCompile Include="dbgeng_util.cpp">
-      <Filter>dbg\util</Filter>
+      <Filter>dbg\util\dbgeng</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -40,6 +43,12 @@
     </Filter>
     <Filter Include="dbg\util">
       <UniqueIdentifier>{e9158764-b3fc-4b6f-8c0a-6bbf75a341fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\cs">
+      <UniqueIdentifier>{efa6479a-08b5-40e8-9ff4-91aa9431afd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\dbgeng">
+      <UniqueIdentifier>{11831b55-7df8-4f8a-aae7-b99334584c52}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 #include <dbgeng_util.h>
+#include <stdio.h>
 
 dbgeng_util::dbgeng_util()
 {
@@ -18,11 +19,6 @@ void dbgeng_util::get_uuid(uuid_type *iid)
 	memcpy(iid->Data4, guid_type.Data4, sizeof(iid->Data4));
 }
 
-bool dbgeng_util::open(unsigned long arch, unsigned long mode)
-{
-	return true;
-}
-
 bool dbgeng_util::disasm(unsigned long long address, unsigned char *table, void *context, size_t context_size)
 {
 	if (context_size != sizeof(dbgeng_disasm_context))
@@ -30,18 +26,56 @@ bool dbgeng_util::disasm(unsigned long long address, unsigned char *table, void 
 		return false;
 	}
 
+	IDebugControl3 *i = nullptr;
 	dbgeng_disasm_context *c = (dbgeng_disasm_context *)context;
-	IDebugControl3 *i = (IDebugControl3 *)c->c->get_instance(DBGENG_DEBUGCONTROL_ID);
 
-	if (!i)
+	try
 	{
-		return false;
+		if (c->c)
+		{
+			i = (IDebugControl3 *)c->c->get_instance(DBGENG_DEBUGCONTROL_ID);
+		}
+		else if (strlen(c->path))
+		{
+			IDebugClient *dc = nullptr;
+			if (DebugCreate(__uuidof(IDebugClient), (void **)&dc) != S_OK)
+			{
+				return false;
+			}
+
+			if (dc->OpenDumpFile(c->path) != S_OK)
+			{
+				return false;
+			}
+
+			if ((dc->QueryInterface(__uuidof(IDebugControl3), (void **)&i) != S_OK))
+			{
+				return false;
+			}
+
+			if (i->WaitForEvent(DEBUG_WAIT_DEFAULT, INFINITE) != S_OK)
+			{
+				return false;
+			}
+		}
+
+		if (!i)
+		{
+			return false;
+		}
+
+		if (i->Disassemble(address, false, c->buffer, c->size_of_buffer, c->size_of_name, c->next_address) != S_OK)
+		{
+			printf("f");
+
+			return false;
+		}
+
+		return true;
+	}
+	catch (...)
+	{
 	}
 
-	if (i->Disassemble(address, false, c->buffer, c->size_of_buffer, c->size_of_name, c->next_address) != S_OK)
-	{
-		return false;
-	}
-
-	return true;
+	return false;
 }

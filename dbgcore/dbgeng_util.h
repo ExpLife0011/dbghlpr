@@ -12,7 +12,6 @@ public:
 
 	virtual void get_uuid(uuid_type *iid);
 
-	virtual bool open(unsigned long arch, unsigned long mode);
 	virtual bool disasm(unsigned long long address, unsigned char *table, void *context, size_t context_size);
 };
 

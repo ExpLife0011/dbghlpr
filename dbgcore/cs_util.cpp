@@ -2,13 +2,19 @@
 #include <Windows.h>
 #include <stdio.h>
 
-cs_util::cs_util()
+cs_util::cs_util() : cs_handle_(0)
 {
-
+	X86_INS_AESDEC;
 }
 
 cs_util::~cs_util()
 {
+	cs_close(&cs_handle_);
+	if (insn_)
+	{
+		cs_free(insn_, 1);
+		insn_ = nullptr;
+	}
 }
 
 void cs_util::get_uuid(uuid_type *iid)
@@ -49,6 +55,25 @@ bool cs_util::disasm(unsigned long long address, unsigned char *table, void *con
 		return false;
 	}
 
+	cs_x86_context *c = (cs_x86_context *)context;
+	if (cs_handle_ == 0)
+	{
+		if (c->bit == 32)
+		{
+			if (!open(CS_ARCH_X86, CS_MODE_32))
+			{
+				return false;
+			}
+		}
+		else if(c->bit == 64)
+		{
+			if (!open(CS_ARCH_X86, CS_MODE_64))
+			{
+				return false;
+			}
+		}
+	}
+
 	size_t size = 16;
 	if (cs_handle_ == 0 || insn_ == nullptr)
 	{
@@ -60,7 +85,6 @@ bool cs_util::disasm(unsigned long long address, unsigned char *table, void *con
 		return false;
 	}
 
-	cs_x86_context *c = (cs_x86_context *)context;
 	c->instruction_id = insn_->id;
 	c->instruction_size = insn_->size;
 	
@@ -95,6 +119,20 @@ bool cs_util::disasm(unsigned long long address, unsigned char *table, void *con
 
 	memset(c->dump, 0, 16);
 	memcpy(c->dump, insn_->bytes, insn_->size);
+
+	c->instruction_group = 0;
+	if (cs_insn_group(cs_handle_, insn_, X86_GRP_JUMP))
+	{
+		c->instruction_group = X86_GRP_JUMP;
+	}
+	else if (cs_insn_group(cs_handle_, insn_, X86_GRP_RET))
+	{
+		c->instruction_group = X86_GRP_RET;
+	}
+	else if (cs_insn_group(cs_handle_, insn_, X86_GRP_INT))
+	{
+		c->instruction_group = X86_GRP_INT;
+	}
 
 	return true;
 }

@@ -48,14 +48,8 @@ bool cs_util::open(unsigned long arch, unsigned long mode)
 	return true;
 }
 
-bool cs_util::disasm(unsigned long long address, unsigned char *table, void *context, size_t context_size)
+bool cs_util::disasm(unsigned long long address, unsigned char *table, x86_disasm_context_type *c)
 {
-	if (context_size != sizeof(cs_x86_context))
-	{
-		return false;
-	}
-
-	cs_x86_context *c = (cs_x86_context *)context;
 	if (cs_handle_ == 0)
 	{
 		if (c->bit == 32)
@@ -65,7 +59,7 @@ bool cs_util::disasm(unsigned long long address, unsigned char *table, void *con
 				return false;
 			}
 		}
-		else if(c->bit == 64)
+		else
 		{
 			if (!open(CS_ARCH_X86, CS_MODE_64))
 			{
@@ -117,9 +111,6 @@ bool cs_util::disasm(unsigned long long address, unsigned char *table, void *con
 		}
 	}
 
-	memset(c->dump, 0, 16);
-	memcpy(c->dump, insn_->bytes, insn_->size);
-
 	c->instruction_group = 0;
 	if (cs_insn_group(cs_handle_, insn_, X86_GRP_JUMP))
 	{
@@ -135,4 +126,57 @@ bool cs_util::disasm(unsigned long long address, unsigned char *table, void *con
 	}
 
 	return true;
+}
+
+unsigned long long cs_util::mnemonic_str(void *handle, unsigned long long address, unsigned long processor_bit, unsigned char *dump, char *output, size_t output_size)
+{
+	try
+	{
+		if (cs_handle_ == 0)
+		{
+			if (processor_bit == 32)
+			{
+				if (!open(CS_ARCH_X86, CS_MODE_32))
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				if (!open(CS_ARCH_X86, CS_MODE_64))
+				{
+					return 0;
+				}
+			}
+		}
+
+		if (cs_handle_ == 0 || insn_ == nullptr)
+		{
+			return 0;
+		}
+
+		size_t size = 16;
+		if (!cs_disasm_iter(cs_handle_, (const unsigned char **)&dump, &size, &address, insn_))
+		{
+			return 0;
+		}
+
+		if (processor_bit == 32)
+		{
+			sprintf_s(output, output_size, "%08x	%s	%s\n", (unsigned long)address, insn_->mnemonic, insn_->op_str);
+		}
+		else
+		{
+			sprintf_s(output, output_size, "%I64x	%s	%s\n", address, insn_->mnemonic, insn_->op_str);
+		}
+
+		address += insn_->size;
+
+		return address;
+	}
+	catch (...)
+	{
+	}
+
+	return 0;
 }

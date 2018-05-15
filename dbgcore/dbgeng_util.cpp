@@ -19,63 +19,49 @@ void dbgeng_util::get_uuid(uuid_type *iid)
 	memcpy(iid->Data4, guid_type.Data4, sizeof(iid->Data4));
 }
 
-bool dbgeng_util::disasm(unsigned long long address, unsigned char *table, void *context, size_t context_size)
+bool dbgeng_util::disasm(unsigned long long address, unsigned char *table, x86_disasm_context_type *context)
 {
-	if (context_size != sizeof(dbgeng_disasm_context))
-	{
-		return false;
-	}
+	return false;
+}
 
-	IDebugControl3 *i = nullptr;
-	dbgeng_disasm_context *c = (dbgeng_disasm_context *)context;
-
+unsigned long long dbgeng_util::mnemonic_str(void *handle, unsigned long long address, unsigned long processor_bit, unsigned char *dump, char *output, size_t output_size)
+{
 	try
 	{
-		if (c->c)
+		if (!handle)
 		{
-			i = (IDebugControl3 *)c->c->get_instance(DBGENG_DEBUGCONTROL_ID);
+			return 0;
 		}
-		else if (strlen(c->path))
-		{
-			IDebugClient *dc = nullptr;
-			if (DebugCreate(__uuidof(IDebugClient), (void **)&dc) != S_OK)
-			{
-				return false;
-			}
 
-			if (dc->OpenDumpFile(c->path) != S_OK)
-			{
-				return false;
-			}
-
-			if ((dc->QueryInterface(__uuidof(IDebugControl3), (void **)&i) != S_OK))
-			{
-				return false;
-			}
-
-			if (i->WaitForEvent(DEBUG_WAIT_DEFAULT, INFINITE) != S_OK)
-			{
-				return false;
-			}
-		}
+		dbg::api *api = (dbg::api *)handle;
+		IDebugControl3 *i = (IDebugControl3 *)api->get_instance(DBGENG_DEBUGCONTROL_ID);
 
 		if (!i)
 		{
-			return false;
+			return 0;
 		}
 
-		if (i->Disassemble(address, false, c->buffer, c->size_of_buffer, c->size_of_name, c->next_address) != S_OK)
+		if (processor_bit == 32)
 		{
-			printf("f");
-
-			return false;
+			i->SetEffectiveProcessorType(IMAGE_FILE_MACHINE_I386);
+		}
+		else
+		{
+			i->SetEffectiveProcessorType(IMAGE_FILE_MACHINE_AMD64);
 		}
 
-		return true;
+		unsigned long disasm_size = 0;
+		unsigned long long next_address = 0;
+		if (i->Disassemble(address, false, output, output_size, &disasm_size, &next_address) != S_OK)
+		{
+			return 0;
+		}
+
+		return next_address;
 	}
 	catch (...)
 	{
 	}
 
-	return false;
+	return 0;
 }

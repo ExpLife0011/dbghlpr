@@ -5,6 +5,7 @@
 
 #include <cs_util.h>
 #include <dbgeng_util.h>
+#include <distorm_util.h>
 
 #include <windows.h>
 #include <stdio.h>
@@ -24,21 +25,9 @@ bool check_guid(uuid_type c_iid, uuid_t iid)
 	return false;
 }
 
-void dbg::util::init_context(dbg::util::dbgeng_disasm_context *ctx)
-{
-	ctx->buffer = nullptr;
-	ctx->c = nullptr;
-	ctx->next_address = 0;
-	ctx->path = nullptr;
-	ctx->pid = 0;
-	ctx->size_of_buffer = 0;
-	ctx->size_of_name = nullptr;
-}
-
-void dbg::util::init_context(dbg::util::cs_x86_context *ctx)
+void dbg::util::init_context(dbg::util::x86_disasm_context_type *ctx)
 {
 	ctx->bit = 0;
-	memset(ctx->dump, 0, sizeof(ctx->dump));
 	ctx->instruction_group = 0;
 	ctx->instruction_id = 0;
 	ctx->instruction_size = 0;
@@ -55,7 +44,7 @@ void dbg::util::init_context(dbg::util::cs_x86_context *ctx)
 //
 //
 //
-dbg::core *dbg::linker::api::create(unsigned long id)
+dbg::api *dbg::linker::api::create(unsigned long id)
 {
 	uuid_t guid_type = { 0, };
 	uuid_type iid = { 0, };
@@ -75,7 +64,7 @@ dbg::core *dbg::linker::api::create(unsigned long id)
 	iid.Data3 = guid_type.Data3;
 	memcpy(iid.Data4, guid_type.Data4, sizeof(iid.Data4));
 
-	return dbg::core::create(iid);
+	return dbg::api::create(iid);
 }
 
 dbg::util *dbg::linker::util::create(unsigned long id)
@@ -91,6 +80,10 @@ dbg::util *dbg::linker::util::create(unsigned long id)
 
 	case IID_DBGENG_UTIL:
 		guid_type = __uuidof(dbgeng_util);
+		break;
+
+	case IID_DISTORM_UTIL:
+		guid_type = __uuidof(distorm_util);
 		break;
 
 	default:
@@ -109,32 +102,32 @@ dbg::util *dbg::linker::util::create(unsigned long id)
 //
 //
 //
-bool dbg::linker::api::open(dbg::core *c, char *path)
+bool dbg::linker::api::open(dbg::api *c, char *path)
 {
 	return c->open(path);
 }
 
-bool dbg::linker::api::open(dbg::core *c, unsigned long pid)
+bool dbg::linker::api::open(dbg::api *c, unsigned long pid)
 {
 	return c->open(pid);
 }
 
-bool dbg::linker::api::query_virtual_memory(dbg::core *c, unsigned long long virtual_address, void *out_memory_info)
+bool dbg::linker::api::query_virtual_memory(dbg::api *c, unsigned long long virtual_address, void *out_memory_info)
 {
 	return c->query_virtual_memory(virtual_address, out_memory_info);
 }
 
-unsigned long __stdcall dbg::linker::api::read_virtual_memory(dbg::core *c, unsigned long long virtual_address, unsigned char *out_memory, unsigned long read_size)
+unsigned long __stdcall dbg::linker::api::read_virtual_memory(dbg::api *c, unsigned long long virtual_address, unsigned char *out_memory, unsigned long read_size)
 {
 	return c->read_virtual_memory(virtual_address, out_memory, read_size);
 }
 
-bool __stdcall dbg::linker::api::get_thread_context(dbg::core *c, cpu_context_type *context)
+bool __stdcall dbg::linker::api::get_thread_context(dbg::api *c, cpu_context_type *context)
 {
 	return c->get_thread_context(context);
 }
 
-bool dbg::linker::api::get_symbol_name(dbg::core *c, unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp)
+bool dbg::linker::api::get_symbol_name(dbg::api *c, unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp)
 {
 	return c->get_symbol_name(offset, buffer, size_of_buffer, size_of_name, disp);
 }
@@ -142,12 +135,12 @@ bool dbg::linker::api::get_symbol_name(dbg::core *c, unsigned long long offset, 
 //
 //
 //
-bool dbg::linker::util::disasm(dbg::util *u, unsigned long long address, unsigned char *table, void *context, size_t context_size)
+bool dbg::linker::util::disasm(dbg::util *u, unsigned long long address, unsigned char *table, dbg::util::x86_disasm_context_type *context)
 {
-	return u->disasm(address, table, context, context_size);
+	return u->disasm(address, table, context);
 }
 
-bool dbg::linker::util::disasm(unsigned long id, unsigned long long address, unsigned char *table, void *context, size_t context_size)
+bool dbg::linker::util::disasm(unsigned long id, unsigned long long address, unsigned char *table, dbg::util::x86_disasm_context_type *context)
 {
 	uuid_t guid_type = { 0, };
 	uuid_type iid = { 0, };
@@ -160,6 +153,10 @@ bool dbg::linker::util::disasm(unsigned long id, unsigned long long address, uns
 
 	case IID_DBGENG_UTIL:
 		guid_type = __uuidof(dbgeng_util);
+		break;
+
+	case IID_DISTORM_UTIL:
+		guid_type = __uuidof(distorm_util);
 		break;
 
 	default:
@@ -177,14 +174,14 @@ bool dbg::linker::util::disasm(unsigned long id, unsigned long long address, uns
 		cs_util cs;
 		u = &cs;
 
-		return u->disasm(address, table, context, context_size);
+		return u->disasm(address, table, context);
 	}
 	else if (check_guid(iid, __uuidof(dbgeng_util)))
 	{
 		dbgeng_util dbgeng;
 		u = &dbgeng;
 
-		return u->disasm(address, table, context, context_size);
+		return u->disasm(address, table, context);
 	}
 
 	return false;
@@ -193,7 +190,7 @@ bool dbg::linker::util::disasm(unsigned long id, unsigned long long address, uns
 //
 //
 //
-dbg::core *dbg::core::create(uuid_type id)
+dbg::api *dbg::api::create(uuid_type id)
 {
 	if (check_guid(id, __uuidof(engine_linker)))
 	{
@@ -212,6 +209,10 @@ dbg::util *dbg::util::create(uuid_type id)
 	else if (check_guid(id, __uuidof(dbgeng_util)))
 	{
 		return new dbgeng_util();
+	}
+	else if (check_guid(id, __uuidof(distorm_util)))
+	{
+		return new distorm_util();
 	}
 
 	return nullptr;

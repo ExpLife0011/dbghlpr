@@ -5,7 +5,7 @@
       <Filter>dbg</Filter>
     </ClInclude>
     <ClInclude Include="dbgeng_linker.h">
-      <Filter>dbg\core\dbgeng</Filter>
+      <Filter>dbg\api\dbgeng</Filter>
     </ClInclude>
     <ClInclude Include="cs_util.h">
       <Filter>dbg\util\cs</Filter>
@@ -16,13 +16,44 @@
     <ClInclude Include="cs_x86_enum.h">
       <Filter>dbg</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\distorm\src\config.h">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\distorm\src\decoder.h">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\distorm\src\instructions.h">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\distorm\src\insts.h">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\distorm\src\operands.h">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\distorm\src\prefix.h">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\distorm\src\textdefs.h">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\distorm\src\wstring.h">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\distorm\src\x86defs.h">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClInclude>
+    <ClInclude Include="distorm_util.h">
+      <Filter>dbg\util\distorm</Filter>
+    </ClInclude>
+    <ClInclude Include="distorm_enum.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="interface.cpp">
       <Filter>dbg</Filter>
     </ClCompile>
     <ClCompile Include="dbgeng_linker.cpp">
-      <Filter>dbg\core\dbgeng</Filter>
+      <Filter>dbg\api\dbgeng</Filter>
     </ClCompile>
     <ClCompile Include="cs_util.cpp">
       <Filter>dbg\util\cs</Filter>
@@ -30,16 +61,40 @@
     <ClCompile Include="dbgeng_util.cpp">
       <Filter>dbg\util\dbgeng</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\distorm\src\decoder.c">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\distorm\src\distorm.c">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\distorm\src\instructions.c">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\distorm\src\insts.c">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\distorm\src\mnemonics.c">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\distorm\src\operands.c">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\distorm\src\prefix.c">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\distorm\src\textdefs.c">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\distorm\src\wstring.c">
+      <Filter>dbg\util\distorm\src</Filter>
+    </ClCompile>
+    <ClCompile Include="distorm_util.cpp">
+      <Filter>dbg\util\distorm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dbg">
       <UniqueIdentifier>{b587137e-b04f-4f50-88ca-69ae51da665a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="dbg\core">
-      <UniqueIdentifier>{1fcd10d0-fdb9-4a47-84ea-0de2fdba8f6f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="dbg\core\dbgeng">
-      <UniqueIdentifier>{a5d0d457-cbdf-4fb8-92ef-41a7948afe97}</UniqueIdentifier>
     </Filter>
     <Filter Include="dbg\util">
       <UniqueIdentifier>{e9158764-b3fc-4b6f-8c0a-6bbf75a341fd}</UniqueIdentifier>
@@ -49,6 +104,18 @@
     </Filter>
     <Filter Include="dbg\util\dbgeng">
       <UniqueIdentifier>{11831b55-7df8-4f8a-aae7-b99334584c52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\distorm">
+      <UniqueIdentifier>{9dcf02f7-5c6a-4e94-893c-64cecc024293}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\distorm\src">
+      <UniqueIdentifier>{006de060-2fed-4b6b-a116-848622ad23e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\api">
+      <UniqueIdentifier>{1fcd10d0-fdb9-4a47-84ea-0de2fdba8f6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\api\dbgeng">
+      <UniqueIdentifier>{a5d0d457-cbdf-4fb8-92ef-41a7948afe97}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

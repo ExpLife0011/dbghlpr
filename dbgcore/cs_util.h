@@ -23,7 +23,8 @@ public:
 	virtual void get_uuid(uuid_type *iid);
 
 	virtual bool open(unsigned long arch, unsigned long mode);
-	virtual bool disasm(unsigned long long address, unsigned char *table, void *context, size_t context_size);
+	virtual bool disasm(unsigned long long address, unsigned char *table, x86_disasm_context_type *context);
+	virtual unsigned long long mnemonic_str(void *handle, unsigned long long address, unsigned long processor_bit, unsigned char *dump, char *output, size_t output_size);
 };
 
 #endif

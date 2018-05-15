@@ -6,38 +6,9 @@
 
 #pragma comment(lib, "dbgcore.lib")
 
-void test_case_1(unsigned long long address, char *dump_path) // direct disasm dump
+void distorm_test(unsigned long long address, char *dump_path)
 {
-	dbg::util::dbgeng_disasm_context ctx;
-	dbg::util::init_context(&ctx);
-
-	char str[500] = { 0, };
-	unsigned long size_of_str = 0;
-	unsigned long long next_address = 0;
-
-	ctx.c = nullptr;
-	ctx.path = dump_path;
-	ctx.pid = 0;
-
-	ctx.buffer = str;
-	ctx.size_of_buffer = sizeof(str);
-	ctx.size_of_name = &size_of_str;
-	ctx.next_address = &next_address;
-
-	printf("test case 1:: %I64x, %s\n", address, dump_path);
-	if (dbg::linker::util::disasm(IID_DBGENG_UTIL, address, nullptr, &ctx, sizeof(dbg::util::dbgeng_disasm_context)))
-	{
-		printf("%s", ctx.buffer);
-	}
-	else
-	{
-		printf("f1\n");
-	}
-}
-
-void test_case_2(unsigned long long address, char *dump_path)
-{
-	dbg::core *c = dbg::linker::api::create(IID_DBGENG_CORE);
+	dbg::api *c = dbg::linker::api::create(IID_DBGENG_CORE);
 	if (!c)
 	{
 		return;
@@ -49,25 +20,123 @@ void test_case_2(unsigned long long address, char *dump_path)
 	}
 
 	unsigned char dump[16] = { 0, };
-	unsigned long readn = c->read_virtual_memory(address, dump, 16);
+	unsigned long readn = dbg::linker::api::read_virtual_memory(c, address, dump, 16);
 	if (readn != 16)
 	{
 		return;
 	}
 
-	dbg::util::cs_x86_context cs_context;
-	dbg::util::init_context(&cs_context);
-
-	cs_context.bit = 32;
-	if (dbg::linker::util::disasm(IID_CS_UTIL, address, dump, &cs_context, sizeof(dbg::util::cs_x86_context)))
+	dbg::util *u = dbg::linker::util::create(IID_DISTORM_UTIL);
+	if (!u)
 	{
-		printf("insn id=%d, insn_size=%d\n", cs_context.instruction_id, cs_context.instruction_size);
-	}
-	else
-	{
-		printf("f2\n");
+		return;
 	}
 
+	char str[1024] = { 0, };
+	if (u->mnemonic_str(nullptr, address, 32, dump, str, sizeof(str)))
+	{
+		printf("dt:: %s", str);
+	}
+
+	dbg::util::x86_disasm_context_type context;
+	context.bit = 32;
+	if (u->disasm(address, dump, &context))
+	{
+		printf("dt ins id=%d, ins size=%d, opcount=%d\n", context.instruction_id, context.instruction_size, context.operand_count);
+		for (unsigned long i = 0; i < context.operand_count; ++i)
+		{
+			printf("operand %d %08x\n", context.operands[i].operand_type, (unsigned long)context.operands[i].value);
+		}
+	}
+	printf("\n");
+
+	free(u);
+	free(c);
+}
+
+void cs_test(unsigned long long address, char *dump_path)
+{
+	dbg::api *c = dbg::linker::api::create(IID_DBGENG_CORE);
+	if (!c)
+	{
+		return;
+	}
+
+	if (!c->open(dump_path))
+	{
+		return;
+	}
+
+	unsigned char dump[16] = { 0, };
+	unsigned long readn = dbg::linker::api::read_virtual_memory(c, address, dump, 16);
+	if (readn != 16)
+	{
+		return;
+	}
+
+	dbg::util *u = dbg::linker::util::create(IID_CS_UTIL);
+	if (!u)
+	{
+		return;
+	}
+
+	char str[1024] = { 0, };
+	if (u->mnemonic_str(nullptr, address, 32, dump, str, sizeof(str)))
+	{
+		printf("cs:: %s", str);
+	}
+
+	dbg::util::x86_disasm_context_type context;
+	context.bit = 32;
+	if (u->disasm(address, dump, &context))
+	{
+		printf("cs ins id=%d, ins size=%d, opcount=%d\n", context.instruction_id, context.instruction_size, context.operand_count);
+		for (unsigned long i = 0; i < context.operand_count; ++i)
+		{
+			printf("operand %d %08x\n", context.operands[i].operand_type, (unsigned long)context.operands[i].value);
+		}
+	}
+	printf("\n");
+
+	free(u);
+	free(c);
+}
+
+void dbgeng_test(unsigned long long address, char *dump_path)
+{
+	dbg::api *c = dbg::linker::api::create(IID_DBGENG_CORE);
+	if (!c)
+	{
+		return;
+	}
+
+	if (!c->open(dump_path))
+	{
+		return;
+	}
+
+	unsigned char dump[16] = { 0, };
+	unsigned long readn = dbg::linker::api::read_virtual_memory(c, address, dump, 16);
+	if (readn != 16)
+	{
+		return;
+	}
+
+	dbg::util *u = dbg::linker::util::create(IID_DBGENG_UTIL);
+	if (!u)
+	{
+		return;
+	}
+
+	unsigned long bit = 32;
+	char str[1024] = { 0, };
+	if (u->mnemonic_str(c, address, 32, dump, str, sizeof(str)))
+	{
+		printf("de:: %s", str);
+	}
+	printf("\n");
+
+	free(u);
 	free(c);
 }
 
@@ -81,8 +150,10 @@ void main(int argc, char *argv[])
 	char *end = nullptr;
 	unsigned long long address = strtoll(argv[1], &end, 16);
 
-	test_case_1(address, argv[2]);
-	test_case_2(address, argv[2]);
+	// dump test
+	distorm_test(address, argv[2]);
+	cs_test(address, argv[2]);
+	dbgeng_test(address, argv[2]);
 
 	_getch();
 }

@@ -1,14 +1,15 @@
-#ifndef __DEFINE_DBGENG_UTIL__
-#define __DEFINE_DBGENG_UTIL__
+#ifndef __DEFINE_DISTORM_UTIL__
+#define __DEFINE_DISTORM_UTIL__
 
 #include <interface.h>
-#include <DbgEng.h>
+#include <distorm/include/distorm.h>
+#include <distorm/include/mnemonics.h>
 
-class __declspec(uuid("B0E0E3B6-6FB7-47D0-B731-DDDD5D3C12C3")) dbgeng_util : public dbg::util
+class __declspec(uuid("2F9A74F9-FCEE-4AB2-844D-C1C48C0602D0")) distorm_util : public dbg::util
 {
 public:
-	dbgeng_util();
-	~dbgeng_util();
+	distorm_util();
+	~distorm_util();
 
 	virtual void get_uuid(uuid_type *iid);
 

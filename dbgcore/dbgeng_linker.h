@@ -3,7 +3,7 @@
 
 #include <interface.h>
 
-class __declspec(uuid("60BB225D-A06F-11D1-9138-0020AF715AF0")) engine_linker : public dbg::core
+class __declspec(uuid("60BB225D-A06F-11D1-9138-0020AF715AF0")) engine_linker : public dbg::api
 {
 private:
 	void *debug_client_;

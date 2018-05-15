@@ -114,6 +114,21 @@ bool engine_linker::open(char *path)
 
 bool engine_linker::open(unsigned long pid)
 {
+	if (!debug_client_)
+	{
+		return false;
+	}
+
+	if (((IDebugClient *)debug_client_)->AttachProcess(0, pid, DEBUG_ATTACH_NONINVASIVE) != S_OK)
+	{
+		return false;
+	}
+
+	if (((IDebugControl3 *)debug_control_3_)->WaitForEvent(DEBUG_WAIT_DEFAULT, INFINITE) != S_OK)
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -150,18 +165,6 @@ unsigned long __stdcall engine_linker::read_virtual_memory(unsigned long long vi
 
 	return readn;
 }
-
-#if 0
-bool engine_linker::disasm(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_disasm, unsigned long long *next)
-{
-	if (((IDebugControl3 *)debug_control_3_)->Disassemble(offset, false, buffer, size_of_buffer, size_of_disasm, next) != S_OK)
-	{
-		return false;
-	}
-
-	return true;
-}
-#endif
 
 bool __stdcall engine_linker::get_thread_context(cpu_context_type *context)
 {

@@ -82,7 +82,7 @@ dbg::util *dbg::linker::util::create(unsigned long id)
 		guid_type = __uuidof(dbgeng_util);
 		break;
 
-	case IID_DISTORM_UTIL:
+	case IID_DT_UTIL:
 		guid_type = __uuidof(distorm_util);
 		break;
 
@@ -135,6 +135,76 @@ bool dbg::linker::api::get_symbol_name(dbg::api *c, unsigned long long offset, c
 //
 //
 //
+bool dbg::util::calc_segment(void *handle, unsigned long long ptr, unsigned long long *alloc_base, unsigned long long *alloc_end)
+{
+	dbg::api *api = (dbg::api *)handle;
+	if (!api)
+	{
+		return false;
+	}
+
+	MEMORY_BASIC_INFORMATION64 mbi = { 0, };
+	if (!api->query_virtual_memory(ptr, &mbi))
+	{
+		return false;
+	}
+
+	unsigned long long base_address = mbi.AllocationBase;
+	unsigned long long base = base_address;
+	unsigned long long analyze_base = 0;
+	unsigned long long analyze_size = 0;
+
+	unsigned long long protect = mbi.Protect;
+
+	do
+	{
+		if (!api->query_virtual_memory(base, &mbi))
+		{
+			break;
+		}
+
+		if (mbi.Protect == protect)
+		{
+			if (analyze_base == 0)
+			{
+				analyze_base = mbi.BaseAddress;
+			}
+
+			analyze_size += mbi.RegionSize;
+		}
+		else
+		{
+			if (analyze_base && analyze_size)
+			{
+				if (analyze_base <= ptr && (analyze_base + analyze_size) >= ptr)
+				{
+					*alloc_base = analyze_base;
+					*alloc_end = analyze_base + analyze_size;
+
+					return true;
+				}
+
+				analyze_base = 0;
+				analyze_size = 0;
+			}
+		}
+
+		base = mbi.BaseAddress + mbi.RegionSize;
+	} while (base_address == mbi.AllocationBase);
+
+	return false;
+}
+
+bool dbg::util::check(unsigned long long ptr, unsigned long long base, unsigned long long end)
+{
+	if (base <= ptr && end >= ptr)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 bool dbg::linker::util::disasm(dbg::util *u, unsigned long long address, unsigned char *table, dbg::util::x86_disasm_context_type *context)
 {
 	return u->disasm(address, table, context);
@@ -155,7 +225,7 @@ bool dbg::linker::util::disasm(unsigned long id, unsigned long long address, uns
 		guid_type = __uuidof(dbgeng_util);
 		break;
 
-	case IID_DISTORM_UTIL:
+	case IID_DT_UTIL:
 		guid_type = __uuidof(distorm_util);
 		break;
 
@@ -190,6 +260,24 @@ bool dbg::linker::util::disasm(unsigned long id, unsigned long long address, uns
 //
 //
 //
+dbg::util::x86_disasm_context_type *dbg::util::create_segment()
+{
+	dbg::util::x86_disasm_context_type *cs = new dbg::util::x86_disasm_context_type;
+
+	cs->bit = 0;
+	cs->instruction_id = 0;
+	cs->instruction_size = 0;
+	cs->instruction_group = 0;
+
+	for (int i = 0; i < 8; ++i)
+	{
+		cs->operands[i].operand_type = 0;
+		cs->operands[i].value = 0;
+	}
+
+	return cs;
+}
+
 dbg::api *dbg::api::create(uuid_type id)
 {
 	if (check_guid(id, __uuidof(engine_linker)))

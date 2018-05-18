@@ -26,7 +26,7 @@ void distorm_test(unsigned long long address, char *dump_path)
 		return;
 	}
 
-	dbg::util *u = dbg::linker::util::create(IID_DISTORM_UTIL);
+	dbg::util *u = dbg::linker::util::create(IID_DT_UTIL);
 	if (!u)
 	{
 		return;
@@ -80,12 +80,6 @@ void cs_test(unsigned long long address, char *dump_path)
 		return;
 	}
 
-	char str[1024] = { 0, };
-	if (u->mnemonic_str(nullptr, address, 32, dump, str, sizeof(str)))
-	{
-		printf("cs:: %s", str);
-	}
-
 	dbg::util::x86_disasm_context_type context;
 	context.bit = 32;
 	if (u->disasm(address, dump, &context))
@@ -96,7 +90,36 @@ void cs_test(unsigned long long address, char *dump_path)
 			printf("operand %d %08x\n", context.operands[i].operand_type, (unsigned long)context.operands[i].value);
 		}
 	}
+
+	dbg::util::code b;
+	unsigned long ce = u->trace(c, address, b, false);
+	printf("%08x size of code block=%d\n", ce, b.address_map.size());
+	std::map<unsigned long long, dbg::util::x86_disasm_context_type *>::iterator address_detail_map_b = b.address_map.begin();
+	std::map<unsigned long long, dbg::util::x86_disasm_context_type *>::iterator address_detail_map_e = b.address_map.end();
+	for (address_detail_map_b; address_detail_map_b != address_detail_map_e; ++address_detail_map_b)
+	{
+		unsigned char read_dump[16] = { 0, };
+		unsigned long readn = dbg::linker::api::read_virtual_memory(c, address_detail_map_b->first, read_dump, 16);
+		if (readn != 16)
+		{
+			continue;
+		}
+
+		char str[1024] = { 0, };
+		if (u->mnemonic_str(nullptr, (unsigned long)address_detail_map_b->first, 32, read_dump, str, sizeof(str)))
+		{
+			printf("cs:: %s", str);
+		}
+	}
+
+	// free block
+	for (address_detail_map_b = b.address_map.begin(); address_detail_map_b != address_detail_map_e; ++address_detail_map_b)
+	{
+		free(address_detail_map_b->second);
+	}
 	printf("\n");
+
+
 
 	free(u);
 	free(c);
@@ -128,7 +151,6 @@ void dbgeng_test(unsigned long long address, char *dump_path)
 		return;
 	}
 
-	unsigned long bit = 32;
 	char str[1024] = { 0, };
 	if (u->mnemonic_str(c, address, 32, dump, str, sizeof(str)))
 	{

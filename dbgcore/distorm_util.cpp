@@ -138,3 +138,23 @@ unsigned long long distorm_util::mnemonic_str(void *handle, unsigned long long a
 	address += di.size;
 	return address;
 }
+
+bool distorm_util::calc_segment(void *handle, unsigned long long ptr, unsigned long long *base, unsigned long long *end)
+{
+	return false;
+}
+
+unsigned long distorm_util::trace(void *handle, unsigned long long ptr, dbg::util::code &b, bool is_range)
+{
+	return false;
+}
+
+unsigned long distorm_util::browse(void *handle, unsigned long long ptr, std::set<unsigned long long> &entry_point_set, bool is_safe)
+{
+	return X86_END_CODE_ERR;
+}
+
+unsigned long distorm_util::analyze(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set)
+{
+	return X86_END_CODE_ERR;
+}

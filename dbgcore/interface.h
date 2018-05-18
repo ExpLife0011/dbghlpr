@@ -4,6 +4,9 @@
 #include "cs_x86_enum.h"
 #include "distorm_enum.h"
 
+#include <map>
+#include <set>
+
 typedef struct uuid_type {
 	unsigned long  Data1;
 	unsigned short Data2;
@@ -686,6 +689,11 @@ namespace dbg
 		virtual bool get_symbol_name(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp) = 0;
 	};
 
+#define X86_END_CODE_ERR	0xC0DE000E
+#define X86_END_CODE_RET	0xC0DE0000
+#define X86_END_CODE_JMP	0xC0DE0001
+#define X86_END_CODE_NUL	0xC0DE0002
+
 	class __declspec(dllexport) util
 	{
 	public:
@@ -712,11 +720,27 @@ namespace dbg
 			__OUT operand_t operands[8];
 		}x86_disasm_context_type;
 
+		typedef struct _tag_code_block_
+		{
+			std::map<unsigned long long, x86_disasm_context_type *> address_map;
+		}code;
+
+		typedef bool(*analyze_callback_type)(dbg::api *, dbg::util *, unsigned char *, unsigned long long, void *context);
+
+		static x86_disasm_context_type *create_segment();
 		static void init_context(x86_disasm_context_type *ctx);
 
 		virtual void get_uuid(uuid_type *iid) = 0;
+
+		virtual bool check(unsigned long long ptr, unsigned long long base, unsigned long long end);
+		virtual bool calc_segment(void *handle, unsigned long long ptr, unsigned long long *base, unsigned long long *end);
+
 		virtual bool disasm(unsigned long long address, unsigned char *table, x86_disasm_context_type *context) = 0;
 		virtual unsigned long long mnemonic_str(void *handle, unsigned long long address, unsigned long processor_bit, unsigned char *dump, char *output, size_t output_size) = 0;
+
+		virtual unsigned long trace(void *handle, unsigned long long ptr, dbg::util::code &b, bool is_safe) = 0;
+		virtual unsigned long browse(void *handle, unsigned long long ptr, std::set<unsigned long long> &entry_point_set, bool is_safe) = 0;
+		virtual unsigned long analyze(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set) = 0;
 	};
 
 #define IID_DBGENG_CORE		0xC0000001
@@ -729,7 +753,7 @@ namespace dbg
 #define IID_DRVAPI_CORE		0xC0000006
 #define IID_UC_CORE			0xC0000007
 
-#define IID_DISTORM_UTIL	0xC0000008
+#define IID_DT_UTIL			0xC0000008
 
 	namespace linker
 	{

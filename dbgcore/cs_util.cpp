@@ -162,14 +162,12 @@ unsigned long long cs_util::mnemonic_str(void *handle, unsigned long long addres
 
 		if (processor_bit == 32)
 		{
-			sprintf_s(output, output_size, "%08x	%s	%s\n", (unsigned long)address, insn_->mnemonic, insn_->op_str);
+			sprintf_s(output, output_size, "%08x	%s	%s\n", (unsigned long)insn_->address, insn_->mnemonic, insn_->op_str);
 		}
 		else
 		{
-			sprintf_s(output, output_size, "%I64x	%s	%s\n", address, insn_->mnemonic, insn_->op_str);
+			sprintf_s(output, output_size, "%I64x	%s	%s\n", insn_->address, insn_->mnemonic, insn_->op_str);
 		}
-
-		address += insn_->size;
 
 		return address;
 	}

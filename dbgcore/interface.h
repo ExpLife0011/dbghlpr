@@ -4,6 +4,7 @@
 #include "cs_x86_enum.h"
 #include "distorm_enum.h"
 
+#include <list>
 #include <map>
 #include <set>
 
@@ -659,10 +660,12 @@ typedef struct __DBG_THREAD_CONTEXT
 	unsigned long long vif;
 }cpu_context_type, *cpu_context_type_ptr;
 
-//
-//
-//
-#define DBGENG_DEBUGCONTROL_ID	0
+///
+///
+///
+#define DBGENG_CORE_DEBUGCLIENT_ID	0xD000001
+#define TARGET_PROCESS_HANDLE_ID	0xD000002
+#define TARGET_THREAD_HANDLE_ID		0xD000003
 
 #define __IN
 #define __OUT
@@ -672,23 +675,50 @@ namespace dbg
 	class __declspec(dllexport) api // api core
 	{
 	public :
+		typedef struct _tag_stack_frame_type
+		{
+			unsigned long long instruction_offset;
+			unsigned long long return_offset;
+			unsigned long long frame_offset;
+			unsigned long long stack_offset;
+			unsigned long long func_table_entry;
+			unsigned long long params[4];
+			unsigned long long reserved[6];
+			int bool_virtual;
+			unsigned long frame_number;
+		} stack_frame_type, *stack_frame_type_ptr;
+
 		virtual ~api() {}
 
 		static dbg::api *create(uuid_type id);
 
-		virtual void *get_instance(unsigned long id) = 0;
+		virtual void *get_object(unsigned long id) = 0;
 		virtual void get_uuid(uuid_type *iid) = 0;
 
 		virtual bool open(char *path) = 0;
-		virtual bool open(unsigned long pid) = 0;
+		virtual bool open(unsigned long ctx) = 0;
+
+		virtual bool get_thread_id_list(std::list<unsigned long> &tid_list) = 0;
+		virtual bool select_thread(unsigned long tid) = 0;
+
+		virtual void * virtual_alloc(unsigned long size, unsigned long allocation_type, unsigned long protect_type) = 0;
+		virtual int virtual_free(void *ptr, unsigned long size, unsigned long free_type) = 0;
 
 		virtual bool query_virtual_memory(unsigned long long virtual_address, void *out_memory_info) = 0;
+
 		virtual unsigned long __stdcall read_virtual_memory(unsigned long long virtual_address, unsigned char *out_memory, unsigned long read_size) = 0;
+		virtual unsigned long __stdcall write_virtual_memory(unsigned long long virtual_address, unsigned char *input_memory, unsigned long write_size) = 0;
 
 		virtual bool __stdcall get_thread_context(cpu_context_type *context) = 0;
+		virtual bool __stdcall set_thread_context(cpu_context_type *context) = 0;
+
 		virtual bool get_symbol_name(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp) = 0;
+		virtual bool stack_trace(unsigned long tid, stack_frame_type_ptr stack_frame, unsigned long size_of_stack_frame, unsigned long *stack_count) = 0;
 	};
 
+	///
+	///
+	///
 #define X86_END_CODE_ERR	0xC0DE000E
 #define X86_END_CODE_RET	0xC0DE0000
 #define X86_END_CODE_JMP	0xC0DE0001
@@ -720,7 +750,7 @@ namespace dbg
 			__OUT operand_t operands[8];
 		}x86_disasm_context_type;
 
-		typedef struct _tag_code_block_
+		typedef struct _tag_code_block_type
 		{
 			std::map<unsigned long long, x86_disasm_context_type *> address_map;
 		}code;
@@ -755,6 +785,11 @@ namespace dbg
 
 #define IID_DT_UTIL			0xC0000008
 
+#define CreateDbgEngCore()		dbg::linker::api::create(IID_DBGENG_CORE)	
+#define CreateCsUtil()			dbg::linker::util::create(IID_CS_UTIL)
+#define CreateDtUtil()			dbg::linker::util::create(IID_DT_UTIL)
+#define CreateDbgEngUtil()		dbg::linker::util::create(IID_DBGENG_UTIL)
+
 	namespace linker
 	{
 		namespace api
@@ -776,7 +811,6 @@ namespace dbg
 			__declspec(dllexport) dbg::util *create(unsigned long id);
 
 			__declspec(dllexport) bool disasm(dbg::util *u, unsigned long long address, unsigned char *table, dbg::util::x86_disasm_context_type *context);
-			__declspec(dllexport) bool disasm(unsigned long id, unsigned long long address, unsigned char *table, dbg::util::x86_disasm_context_type *context);
 		}
 	}
 }

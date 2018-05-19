@@ -8,7 +8,7 @@
 
 void distorm_test(unsigned long long address, char *dump_path)
 {
-	dbg::api *c = dbg::linker::api::create(IID_DBGENG_CORE);
+	dbg::api *c = CreateDbgEngCore();
 	if (!c)
 	{
 		return;
@@ -26,7 +26,7 @@ void distorm_test(unsigned long long address, char *dump_path)
 		return;
 	}
 
-	dbg::util *u = dbg::linker::util::create(IID_DT_UTIL);
+	dbg::util *u = CreateDtUtil();
 	if (!u)
 	{
 		return;
@@ -56,7 +56,7 @@ void distorm_test(unsigned long long address, char *dump_path)
 
 void cs_test(unsigned long long address, char *dump_path)
 {
-	dbg::api *c = dbg::linker::api::create(IID_DBGENG_CORE);
+	dbg::api *c = CreateDbgEngCore();
 	if (!c)
 	{
 		return;
@@ -74,7 +74,7 @@ void cs_test(unsigned long long address, char *dump_path)
 		return;
 	}
 
-	dbg::util *u = dbg::linker::util::create(IID_CS_UTIL);
+	dbg::util *u = CreateCsUtil();
 	if (!u)
 	{
 		return;
@@ -92,7 +92,7 @@ void cs_test(unsigned long long address, char *dump_path)
 	}
 
 	dbg::util::code b;
-	unsigned long ce = u->trace(c, address, b, false);
+	unsigned long ce = u->trace(c, address, b, true);
 	printf("%08x size of code block=%d\n", ce, b.address_map.size());
 	std::map<unsigned long long, dbg::util::x86_disasm_context_type *>::iterator address_detail_map_b = b.address_map.begin();
 	std::map<unsigned long long, dbg::util::x86_disasm_context_type *>::iterator address_detail_map_e = b.address_map.end();
@@ -119,15 +119,13 @@ void cs_test(unsigned long long address, char *dump_path)
 	}
 	printf("\n");
 
-
-
 	free(u);
 	free(c);
 }
 
 void dbgeng_test(unsigned long long address, char *dump_path)
 {
-	dbg::api *c = dbg::linker::api::create(IID_DBGENG_CORE);
+	dbg::api *c = CreateDbgEngCore();
 	if (!c)
 	{
 		return;
@@ -145,7 +143,7 @@ void dbgeng_test(unsigned long long address, char *dump_path)
 		return;
 	}
 
-	dbg::util *u = dbg::linker::util::create(IID_DBGENG_UTIL);
+	dbg::util *u = CreateDbgEngUtil();
 	if (!u)
 	{
 		return;
@@ -158,8 +156,59 @@ void dbgeng_test(unsigned long long address, char *dump_path)
 	}
 	printf("\n");
 
+	cpu_context_type cc;
+	std::list<unsigned long> tid_list;
+	if (c->get_thread_id_list(tid_list))
+	{
+		std::list<unsigned long>::iterator it = tid_list.begin();
+		dbg::api::stack_frame_type sft[1000];
+		memset(sft, 0, sizeof(sft));
+
+		unsigned long cnt = 0;
+		c->stack_trace(*it, sft, sizeof(sft), &cnt);
+		for (unsigned long i = 0; i < cnt; ++i)
+		{
+			printf("%08x	%08x	%08x\n", (unsigned long)sft[i].stack_offset, (unsigned long)sft[i].return_offset, (unsigned long)sft[i].instruction_offset);
+		}
+
+		for (it; it != tid_list.end(); ++it)
+		{
+			printf("tid=%d(%x)	", *it, *it);
+			if (c->select_thread(*it))
+			{
+				printf("select=>");
+				if (c->get_thread_context(&cc))
+				{
+					printf("%08x", (unsigned long)cc.rip);
+				}
+			}
+			printf("\n");
+		}
+	}
+
 	free(u);
 	free(c);
+}
+
+void live_test(unsigned long long address, unsigned long pid)
+{
+	dbg::api *c = CreateDbgEngCore();
+	if (!c)
+	{
+		return;
+	}
+
+	if (!c->open(pid))
+	{
+		printf("openf\n");
+		return;
+	}
+
+	HANDLE handle = c->get_object(TARGET_PROCESS_HANDLE_ID);
+	if (handle)
+	{
+		printf("target pid=%d\n", GetProcessId(handle));
+	}
 }
 
 void main(int argc, char *argv[])
@@ -172,10 +221,16 @@ void main(int argc, char *argv[])
 	char *end = nullptr;
 	unsigned long long address = strtoll(argv[1], &end, 16);
 
+#if 1
 	// dump test
 	distorm_test(address, argv[2]);
 	cs_test(address, argv[2]);
 	dbgeng_test(address, argv[2]);
+#else
+	// live test
+	unsigned long pid = strtol(argv[2], &end, 10);
+	live_test(address, pid);
+#endif
 
 	_getch();
 }

@@ -1,6 +1,8 @@
 #ifndef DISTORM_ENUM_H
 #define DISTORM_ENUM_H
 
+/* Capstone Disassembly Engine */
+/* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013-2014 */
 /* https://github.com/gdabah/distorm */
 
 namespace distorm_enum

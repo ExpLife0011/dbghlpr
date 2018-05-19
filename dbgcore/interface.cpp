@@ -210,53 +210,6 @@ bool dbg::linker::util::disasm(dbg::util *u, unsigned long long address, unsigne
 	return u->disasm(address, table, context);
 }
 
-bool dbg::linker::util::disasm(unsigned long id, unsigned long long address, unsigned char *table, dbg::util::x86_disasm_context_type *context)
-{
-	uuid_t guid_type = { 0, };
-	uuid_type iid = { 0, };
-
-	switch (id)
-	{
-	case IID_CS_UTIL:
-		guid_type = __uuidof(cs_util);
-		break;
-
-	case IID_DBGENG_UTIL:
-		guid_type = __uuidof(dbgeng_util);
-		break;
-
-	case IID_DT_UTIL:
-		guid_type = __uuidof(distorm_util);
-		break;
-
-	default:
-		return false;
-	}
-
-	iid.Data1 = guid_type.Data1;
-	iid.Data2 = guid_type.Data2;
-	iid.Data3 = guid_type.Data3;
-	memcpy(iid.Data4, guid_type.Data4, sizeof(iid.Data4));
-
-	dbg::util *u = nullptr;
-	if (check_guid(iid, __uuidof(cs_util)))
-	{
-		cs_util cs;
-		u = &cs;
-
-		return u->disasm(address, table, context);
-	}
-	else if (check_guid(iid, __uuidof(dbgeng_util)))
-	{
-		dbgeng_util dbgeng;
-		u = &dbgeng;
-
-		return u->disasm(address, table, context);
-	}
-
-	return false;
-}
-
 //
 //
 //

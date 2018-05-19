@@ -46,7 +46,9 @@
     <ClInclude Include="distorm_util.h">
       <Filter>dbg\util\distorm</Filter>
     </ClInclude>
-    <ClInclude Include="distorm_enum.h" />
+    <ClInclude Include="distorm_enum.h">
+      <Filter>dbg</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="interface.cpp">

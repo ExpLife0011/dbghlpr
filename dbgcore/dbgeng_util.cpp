@@ -34,9 +34,15 @@ unsigned long long dbgeng_util::mnemonic_str(void *handle, unsigned long long ad
 		}
 
 		dbg::api *api = (dbg::api *)handle;
-		IDebugControl3 *i = (IDebugControl3 *)api->get_instance(DBGENG_DEBUGCONTROL_ID);
+		IDebugClient *client = (IDebugClient *)api->get_object(DBGENG_CORE_DEBUGCLIENT_ID);
 
-		if (!i)
+		if (!client)
+		{
+			return 0;
+		}
+
+		IDebugControl3 *i;
+		if (client->QueryInterface(__uuidof(IDebugControl3), (void **)&i) != S_OK)
 		{
 			return 0;
 		}

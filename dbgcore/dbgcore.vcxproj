@@ -36,6 +36,7 @@
     <ClInclude Include="distorm_util.h" />
     <ClInclude Include="interface.h" />
     <ClInclude Include="uc_linker.h" />
+    <ClInclude Include="uc_util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\distorm\src\decoder.c" />
@@ -53,6 +54,7 @@
     <ClCompile Include="interface.cpp" />
     <ClCompile Include="cs_util.cpp" />
     <ClCompile Include="uc_linker.cpp" />
+    <ClCompile Include="uc_util.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A1D2F360-E45A-48B2-A609-CCAD10CE007C}</ProjectGuid>

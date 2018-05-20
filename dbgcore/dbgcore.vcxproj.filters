@@ -52,6 +52,9 @@
     <ClInclude Include="uc_linker.h">
       <Filter>dbg\api\unicorn</Filter>
     </ClInclude>
+    <ClInclude Include="uc_util.h">
+      <Filter>dbg\util\unicorn</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="interface.cpp">
@@ -99,6 +102,9 @@
     <ClCompile Include="uc_linker.cpp">
       <Filter>dbg\api\unicorn</Filter>
     </ClCompile>
+    <ClCompile Include="uc_util.cpp">
+      <Filter>dbg\util\unicorn</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dbg">
@@ -127,6 +133,9 @@
     </Filter>
     <Filter Include="dbg\api\unicorn">
       <UniqueIdentifier>{62c63500-7926-4ee3-8b0d-6129ea00bd25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\unicorn">
+      <UniqueIdentifier>{6d3f1a6e-60fa-46bf-88d6-ff4d98dac35f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

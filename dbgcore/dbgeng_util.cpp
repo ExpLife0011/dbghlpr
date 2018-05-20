@@ -87,7 +87,7 @@ unsigned long dbgeng_util::browse(void *handle, unsigned long long ptr, std::set
 	return X86_END_CODE_ERR;
 }
 
-unsigned long dbgeng_util::analyze(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set)
+unsigned long dbgeng_util::run(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set)
 {
 	return X86_END_CODE_ERR;
 }

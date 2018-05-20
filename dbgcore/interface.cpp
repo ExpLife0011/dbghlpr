@@ -7,6 +7,7 @@
 #include <cs_util.h>
 #include <dbgeng_util.h>
 #include <distorm_util.h>
+#include <uc_util.h>
 
 #include <windows.h>
 #include <stdio.h>
@@ -89,6 +90,10 @@ dbg::util *dbg::linker::util::create(unsigned long id)
 
 	case IID_DT_UTIL:
 		guid_type = __uuidof(distorm_util);
+		break;
+
+	case IID_UC_UTIL:
+		guid_type = __uuidof(uc_util);
 		break;
 
 	default:
@@ -263,6 +268,10 @@ dbg::util *dbg::util::create(uuid_type id)
 	else if (check_guid(id, __uuidof(distorm_util)))
 	{
 		return new distorm_util();
+	}
+	else if (check_guid(id, __uuidof(uc_util)))
+	{
+		return new uc_util();
 	}
 
 	return nullptr;

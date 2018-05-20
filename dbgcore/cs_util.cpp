@@ -792,7 +792,7 @@ unsigned long cs_util::browse(void *handle, unsigned long long ptr, std::set<uns
 //
 //
 //
-unsigned long cs_util::analyze(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set)
+unsigned long cs_util::run(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set)
 {
 	dbg::api *api = (dbg::api *)handle;
 	if (!api)

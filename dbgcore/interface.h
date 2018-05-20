@@ -666,6 +666,7 @@ typedef struct __DBG_THREAD_CONTEXT
 #define DBGENG_CORE_DEBUGCLIENT_ID	0xD000001
 #define TARGET_PROCESS_HANDLE_ID	0xD000002
 #define TARGET_THREAD_HANDLE_ID		0xD000003
+#define EMULATOR_HANDLE_ID			0xD000004
 
 #define __IN
 #define __OUT
@@ -734,6 +735,11 @@ namespace dbg
 #define X86_END_CODE_JMP	0xC0DE0001
 #define X86_END_CODE_NUL	0xC0DE0002
 
+#define UC_CODE_ERR			0xEC000001
+#define UC_READ_ERR			0xEC000002
+#define UC_WRITE_ERR		0xEC000003
+#define UC_FETCH_ERR		0xEC000004
+
 	class __declspec(dllexport) util
 	{
 	public:
@@ -765,8 +771,11 @@ namespace dbg
 			std::map<unsigned long long, x86_disasm_context_type *> address_map;
 		}code;
 
-		typedef bool(*analyze_callback_type)(dbg::api *, dbg::util *, unsigned char *, unsigned long long, void *context);
+		typedef bool(*analyze_callback_type)(dbg::api *, dbg::util *, void *, unsigned long long, void *context);
 
+		//
+		//
+		//
 		static x86_disasm_context_type *create_segment();
 		static void init_context(x86_disasm_context_type *ctx);
 
@@ -780,7 +789,7 @@ namespace dbg
 
 		virtual unsigned long trace(void *handle, unsigned long long ptr, dbg::util::code &b, bool is_safe) = 0;
 		virtual unsigned long browse(void *handle, unsigned long long ptr, std::set<unsigned long long> &entry_point_set, bool is_safe) = 0;
-		virtual unsigned long analyze(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set) = 0;
+		virtual unsigned long run(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set) = 0;
 	};
 
 #define IID_DBGENG_CORE		0xC0000001
@@ -794,6 +803,7 @@ namespace dbg
 #define IID_UC_CORE			0xC0000007
 
 #define IID_DT_UTIL			0xC0000008
+#define IID_UC_UTIL			0xC0000009
 
 #define CreateDbgEngCore()		dbg::linker::api::create(IID_DBGENG_CORE)	
 #define CreateCsUtil()			dbg::linker::util::create(IID_CS_UTIL)

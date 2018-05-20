@@ -29,7 +29,18 @@ void uc_linker::get_uuid(uuid_type *iid)
 
 void *uc_linker::get_object(unsigned long id)
 {
-	return nullptr;
+	void *i = nullptr;
+	switch (id)
+	{
+	case EMULATOR_HANDLE_ID :
+		i = (void *)uc_;
+
+		break;
+	default:
+		break;
+	}
+
+	return i;
 }
 
 unsigned long long __stdcall uc_linker::alignment(unsigned long long region_size, unsigned long image_aligin)

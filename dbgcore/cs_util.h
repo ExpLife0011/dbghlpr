@@ -39,7 +39,7 @@ public:
 	virtual unsigned long browse(void *handle, unsigned long long ptr, std::set<unsigned long long> &entry_point_set);
 	virtual unsigned long browse_safe(void *handle, unsigned long long ptr, std::set<unsigned long long> &entry_point_set);
 
-	virtual unsigned long analyze(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set);
+	virtual unsigned long run(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set);
 };
 
 #endif

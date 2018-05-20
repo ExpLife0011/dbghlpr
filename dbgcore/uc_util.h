@@ -1,27 +1,41 @@
-#ifndef __DEFINE_DISTORM_UTIL__
-#define __DEFINE_DISTORM_UTIL__
+#ifndef __DEFINE_UNICORN_UTIL__
+#define __DEFINE_UNICORN_UTIL__
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <unicorn/unicorn.h>
 
 #include <interface.h>
-#include <distorm/include/distorm.h>
-#include <distorm/include/mnemonics.h>
+#include <Windows.h>
 #include <set>
 
-class __declspec(uuid("2F9A74F9-FCEE-4AB2-844D-C1C48C0602D0")) distorm_util : public dbg::util
+class __declspec(uuid("4840847A-9432-4589-B809-8D782A7301EC")) uc_util : public dbg::util
 {
+private:
+	typedef struct _tag_uc_callback_data
+	{
+		dbg::api *api;
+		dbg::util *util;
+		void *user_context;
+		analyze_callback_type cb;
+	}callback_data;
+
 public:
-	distorm_util();
-	~distorm_util();
+	uc_util();
+	~uc_util();
 
 	virtual void get_uuid(uuid_type *iid);
 
 	virtual bool disasm(unsigned long long address, unsigned char *table, x86_disasm_context_type *context);
 	virtual unsigned long long mnemonic_str(void *handle, unsigned long long address, unsigned long processor_bit, unsigned char *dump, char *output, size_t output_size);
-
 	virtual bool calc_segment(void *handle, unsigned long long ptr, unsigned long long *base, unsigned long long *end);
 	virtual unsigned long trace(void *handle, unsigned long long ptr, dbg::util::code &b, bool is_range);
 
 	virtual unsigned long browse(void *handle, unsigned long long ptr, std::set<unsigned long long> &entry_point_set, bool is_safe);
 	virtual unsigned long run(void *handle, analyze_callback_type cb, void *cb_context, unsigned long long base, unsigned long long end, std::set<unsigned long long> &entry_point_set);
+
+	static void code_callback(uc_engine *uc, uint64_t address, uint32_t size, void *user_data);
+	static void rw_unmap_callback(uc_engine *uc, uc_mem_type type, uint64_t address, int size, int64_t value, void *user_data);
+	static void fetch_unmap_callback(uc_engine *uc, uc_mem_type type, uint64_t address, int size, int64_t value, void *user_data);
 };
 
 #endif

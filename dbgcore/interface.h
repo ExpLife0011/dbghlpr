@@ -688,6 +688,12 @@ namespace dbg
 			unsigned long frame_number;
 		} stack_frame_type, *stack_frame_type_ptr;
 
+		typedef struct _tag_uc_memory_info_type
+		{
+			unsigned long long base_address;
+			unsigned long long end_address;
+		}uc_memory_t;
+
 		virtual ~api() {}
 
 		static dbg::api *create(uuid_type id);
@@ -698,10 +704,12 @@ namespace dbg
 		virtual bool open(char *path) = 0;
 		virtual bool open(unsigned long ctx) = 0;
 
+		virtual bool close() = 0;
+
 		virtual bool get_thread_id_list(std::list<unsigned long> &tid_list) = 0;
 		virtual bool select_thread(unsigned long tid) = 0;
 
-		virtual void * virtual_alloc(unsigned long size, unsigned long allocation_type, unsigned long protect_type) = 0;
+		virtual void * virtual_alloc(unsigned long long base, unsigned long size, unsigned long allocation_type, unsigned long protect_type) = 0;
 		virtual int virtual_free(void *ptr, unsigned long size, unsigned long free_type) = 0;
 
 		virtual bool query_virtual_memory(unsigned long long virtual_address, void *out_memory_info) = 0;
@@ -714,6 +722,8 @@ namespace dbg
 
 		virtual bool get_symbol_name(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp) = 0;
 		virtual bool stack_trace(unsigned long tid, stack_frame_type_ptr stack_frame, unsigned long size_of_stack_frame, unsigned long *stack_count) = 0;
+
+		virtual bool write_dump(char *path) = 0;
 	};
 
 	///
@@ -789,6 +799,7 @@ namespace dbg
 #define CreateCsUtil()			dbg::linker::util::create(IID_CS_UTIL)
 #define CreateDtUtil()			dbg::linker::util::create(IID_DT_UTIL)
 #define CreateDbgEngUtil()		dbg::linker::util::create(IID_DBGENG_UTIL)
+#define CreateUcCore()			dbg::linker::api::create(IID_UC_CORE)
 
 	namespace linker
 	{

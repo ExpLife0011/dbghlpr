@@ -115,6 +115,29 @@ bool engine_linker::is_user_mode_debugging()
 	return dbg_class == DEBUG_CLASS_USER_WINDOWS && dbg_qualifier == DEBUG_USER_WINDOWS_PROCESS;
 }
 
+bool engine_linker::is_kernel_mode_debugging()
+{
+	if (!debug_client_)
+	{
+		return false;
+	}
+
+	IDebugControl3 *debug_control;
+	if (((IDebugClient *)debug_client_)->QueryInterface(__uuidof(IDebugControl3), (void **)&debug_control) != S_OK)
+	{
+		return false;
+	}
+
+	unsigned long dbg_class = 0;
+	unsigned long dbg_qualifier = 0;
+	if (debug_control->GetDebuggeeType(&dbg_class, &dbg_qualifier) != S_OK)
+	{
+		return false;
+	}
+
+	return dbg_class == DEBUG_CLASS_KERNEL && dbg_qualifier == DEBUG_USER_WINDOWS_PROCESS;
+}
+
 //
 //
 //
@@ -163,6 +186,21 @@ bool engine_linker::open(unsigned long pid)
 	}
 
 	if (debug_control->WaitForEvent(DEBUG_WAIT_DEFAULT, INFINITE) != S_OK)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool engine_linker::close()
+{
+	if (!debug_client_)
+	{
+		return false;
+	}
+
+	if (((IDebugClient *)debug_client_)->DetachProcesses() != S_OK)
 	{
 		return false;
 	}
@@ -267,7 +305,7 @@ bool engine_linker::query_virtual_memory(unsigned long long virtual_address, voi
 	return false;
 }
 
-void * engine_linker::virtual_alloc(unsigned long size, unsigned long allocation_type, unsigned long protect_type)
+void * engine_linker::virtual_alloc(unsigned long long base, unsigned long size, unsigned long allocation_type, unsigned long protect_type)
 {
 	if (!debug_client_)
 	{
@@ -843,6 +881,27 @@ bool engine_linker::stack_trace(unsigned long tid, stack_frame_type_ptr stack_fr
 	}
 
 	free(debug_stack_frame);
+
+	return true;
+}
+
+bool engine_linker::write_dump(char *path)
+{
+	if (!debug_client_)
+	{
+		return false;
+	}
+
+	unsigned long flag = DEBUG_DUMP_DEFAULT;
+	if (is_kernel_mode_debugging())
+	{
+		flag = DEBUG_DUMP_FULL;
+	}
+
+	if (((IDebugClient *)debug_client_)->WriteDumpFile(path, flag) != S_OK)
+	{
+		return false;
+	}
 
 	return true;
 }

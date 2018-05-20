@@ -49,6 +49,9 @@
     <ClInclude Include="distorm_enum.h">
       <Filter>dbg</Filter>
     </ClInclude>
+    <ClInclude Include="uc_linker.h">
+      <Filter>dbg\api\unicorn</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="interface.cpp">
@@ -93,6 +96,9 @@
     <ClCompile Include="distorm_util.cpp">
       <Filter>dbg\util\distorm</Filter>
     </ClCompile>
+    <ClCompile Include="uc_linker.cpp">
+      <Filter>dbg\api\unicorn</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dbg">
@@ -118,6 +124,9 @@
     </Filter>
     <Filter Include="dbg\api\dbgeng">
       <UniqueIdentifier>{a5d0d457-cbdf-4fb8-92ef-41a7948afe97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\api\unicorn">
+      <UniqueIdentifier>{62c63500-7926-4ee3-8b0d-6129ea00bd25}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -16,16 +16,18 @@ public:
 	virtual void *get_object(unsigned long id);
 
 	virtual bool is_user_mode_debugging();
-
+	virtual bool is_kernel_mode_debugging();
 
 	virtual bool open(char *path);
 	virtual bool open(unsigned long pid);
+
+	virtual bool close();
 
 	virtual bool get_thread_id_list(std::list<unsigned long> &tid_list);
 	virtual bool select_thread(unsigned long tid);
 
 	virtual bool query_virtual_memory(unsigned long long virtual_address, void *out_memory_info);
-	virtual void * virtual_alloc(unsigned long size, unsigned long allocation_type, unsigned long protect_type);
+	virtual void * virtual_alloc(unsigned long long base, unsigned long size, unsigned long allocation_type, unsigned long protect_type);
 	virtual int virtual_free(void *ptr, unsigned long size, unsigned long free_type);
 
 	virtual unsigned long __stdcall read_virtual_memory(unsigned long long virtual_address, unsigned char *out_memory, unsigned long read_size);
@@ -36,6 +38,8 @@ public:
 
 	virtual bool get_symbol_name(unsigned long long offset, char *buffer, unsigned long size_of_buffer, unsigned long *size_of_name, unsigned long long *disp);
 	virtual bool stack_trace(unsigned long tid, stack_frame_type_ptr stack_frame, unsigned long size_of_stack_frame, unsigned long *stack_count);
+
+	virtual bool write_dump(char *path);
 };
 
 #endif

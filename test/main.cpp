@@ -186,6 +186,11 @@ void dbgeng_test(unsigned long long address, char *dump_path)
 		}
 	}
 
+	if (c->close())
+	{
+		printf("close..\n");
+	}
+
 	free(u);
 	free(c);
 }
@@ -211,6 +216,26 @@ void live_test(unsigned long long address, unsigned long pid)
 	}
 }
 
+void uc_test()
+{
+	dbg::api *c = CreateUcCore();
+	if (!c)
+	{
+		printf("cf\n");
+		return;
+	}
+
+	if (!c->open(32))
+	{
+		printf("of\n");
+		return;
+	}
+
+	printf("uc ok\n");
+
+	free(c);
+}
+
 void main(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -226,6 +251,8 @@ void main(int argc, char *argv[])
 	distorm_test(address, argv[2]);
 	cs_test(address, argv[2]);
 	dbgeng_test(address, argv[2]);
+
+	uc_test();
 #else
 	// live test
 	unsigned long pid = strtol(argv[2], &end, 10);

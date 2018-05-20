@@ -2,6 +2,7 @@
 
 #include <interface.h>
 #include <dbgeng_linker.h>
+#include <uc_linker.h>
 
 #include <cs_util.h>
 #include <dbgeng_util.h>
@@ -53,6 +54,10 @@ dbg::api *dbg::linker::api::create(unsigned long id)
 	{
 	case IID_DBGENG_CORE:
 		guid_type = __uuidof(engine_linker);
+		break;
+
+	case IID_UC_CORE:
+		guid_type = __uuidof(uc_linker);
 		break;
 
 	default:
@@ -236,6 +241,10 @@ dbg::api *dbg::api::create(uuid_type id)
 	if (check_guid(id, __uuidof(engine_linker)))
 	{
 		return new engine_linker();
+	}
+	else if (check_guid(id, __uuidof(uc_linker)))
+	{
+		return new uc_linker();
 	}
 
 	return nullptr;

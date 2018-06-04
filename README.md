@@ -1,11 +1,6 @@
-![](./doc/img/ut_1.gif)
 ---
 Dbghlpr : debugging helper
 ==============
-
----
-
----
 
 credits
 -------
@@ -13,3 +8,4 @@ credits
 * emulator powered by [unicorn engine](https://github.com/unicorn-engine/unicorn)
 * string reference powered by [x64dbg](https://github.com/x64dbg/x64dbg)
 * graph view powered by [medusa](https://github.com/wisk/medusa), [x64dbg](https://github.com/x64dbg/x64dbg)
+* assembly powered by [keystone engine](https://github.com/keystone-engine/keystone)

@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="internal.cpp">
+      <Filter>internal</Filter>
+    </ClCompile>
+    <ClCompile Include="cs_util.cpp">
+      <Filter>dbg\util\cs</Filter>
+    </ClCompile>
+    <ClCompile Include="dbgeng_util.cpp">
+      <Filter>dbg\util\dbgeng</Filter>
+    </ClCompile>
+    <ClCompile Include="distorm_util.cpp">
+      <Filter>dbg\util\dt</Filter>
+    </ClCompile>
+    <ClCompile Include="uc_util.cpp">
+      <Filter>dbg\util\uc</Filter>
+    </ClCompile>
+    <ClCompile Include="dbgeng_linker.cpp">
+      <Filter>dbg\api\dbgeng</Filter>
+    </ClCompile>
+    <ClCompile Include="rmtdll_linker.cpp">
+      <Filter>dbg\api\rmtdll</Filter>
+    </ClCompile>
+    <ClCompile Include="uc_linker.cpp">
+      <Filter>dbg\api\uc</Filter>
+    </ClCompile>
+    <ClCompile Include="interface.cpp">
+      <Filter>dbg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\distorm\src\decoder.c">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\distorm\src\distorm.c">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\distorm\src\instructions.c">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\distorm\src\insts.c">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\distorm\src\mnemonics.c">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\distorm\src\operands.c">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\distorm\src\prefix.c">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\distorm\src\textdefs.c">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\distorm\src\wstring.c">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dbgkpr_sdk.h" />
+    <ClInclude Include="internal.h">
+      <Filter>internal</Filter>
+    </ClInclude>
+    <ClInclude Include="cs_util.h">
+      <Filter>dbg\util\cs</Filter>
+    </ClInclude>
+    <ClInclude Include="dbgeng_util.h">
+      <Filter>dbg\util\dbgeng</Filter>
+    </ClInclude>
+    <ClInclude Include="distorm_util.h">
+      <Filter>dbg\util\dt</Filter>
+    </ClInclude>
+    <ClInclude Include="uc_util.h">
+      <Filter>dbg\util\uc</Filter>
+    </ClInclude>
+    <ClInclude Include="dbgeng_linker.h">
+      <Filter>dbg\api\dbgeng</Filter>
+    </ClInclude>
+    <ClInclude Include="rmtdll_linker.h">
+      <Filter>dbg\api\rmtdll</Filter>
+    </ClInclude>
+    <ClInclude Include="rmt_data.h">
+      <Filter>dbg\api\rmtdll</Filter>
+    </ClInclude>
+    <ClInclude Include="uc_linker.h">
+      <Filter>dbg\api\uc</Filter>
+    </ClInclude>
+    <ClInclude Include="interface.h">
+      <Filter>dbg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\distorm\src\config.h">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\distorm\src\decoder.h">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\distorm\src\instructions.h">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\distorm\src\insts.h">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\distorm\src\operands.h">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\distorm\src\prefix.h">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\distorm\src\textdefs.h">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\distorm\src\wstring.h">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\distorm\src\x86defs.h">
+      <Filter>dbg\util\dt\src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="dbg">
+      <UniqueIdentifier>{ccc83041-c970-46ee-942e-afce4404b42a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\api">
+      <UniqueIdentifier>{67f31709-0ef0-45bd-b2e1-9f69aefae131}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util">
+      <UniqueIdentifier>{3328bf01-388e-45fe-87e5-de367a8d7792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="internal">
+      <UniqueIdentifier>{a88edcf8-df47-4ae5-845c-1c1dc9c60aa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\cs">
+      <UniqueIdentifier>{3d77d875-054d-437c-83d4-60c495261827}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\dbgeng">
+      <UniqueIdentifier>{f16a19ee-0ba3-4c54-8734-4a0f118b3836}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\dt">
+      <UniqueIdentifier>{357a4237-1f3d-4879-9cc4-bafb2b12eddc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\uc">
+      <UniqueIdentifier>{45986321-5d4b-4f13-b2f6-f0414bfeadb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\api\dbgeng">
+      <UniqueIdentifier>{012f99be-924b-4d70-922d-ff4d29831076}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\api\rmtdll">
+      <UniqueIdentifier>{0912141d-5048-4b4a-93a2-f4654e0617cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\api\uc">
+      <UniqueIdentifier>{c602a6c5-066d-40a1-bd71-c07fbee8f5fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dbg\util\dt\src">
+      <UniqueIdentifier>{454eb1f1-7093-4903-ac58-1e340dd8345e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

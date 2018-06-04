@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="analyzer.cpp">
+      <Filter>analyzer</Filter>
+    </ClCompile>
+    <ClCompile Include="analyzer_wrapper.cpp">
+      <Filter>analyzer</Filter>
+    </ClCompile>
+    <ClCompile Include="emulator.cpp">
+      <Filter>emulator</Filter>
+    </ClCompile>
+    <ClCompile Include="emulator_exts.cpp">
+      <Filter>exts</Filter>
+    </ClCompile>
+    <ClCompile Include="debugging_exts.cpp">
+      <Filter>exts</Filter>
+    </ClCompile>
+    <ClCompile Include="analyzer_exts.cpp">
+      <Filter>exts</Filter>
+    </ClCompile>
+    <ClCompile Include="memory_exts.cpp">
+      <Filter>exts</Filter>
+    </ClCompile>
+    <ClCompile Include="segment_exts.cpp">
+      <Filter>exts</Filter>
+    </ClCompile>
+    <ClCompile Include="engextcpp.cpp">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="engine.cpp">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="engine_linker.cpp">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="helper.cpp">
+      <Filter>interface</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="analyzer.h">
+      <Filter>analyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="analyzer_wrapper.h">
+      <Filter>analyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="emulator.h">
+      <Filter>emulator</Filter>
+    </ClInclude>
+    <ClInclude Include="engextcpp.hpp">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="engine.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="engine_linker.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="helper.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="register_idx.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="analyzer">
+      <UniqueIdentifier>{21c2ddbd-4333-48b8-aa35-906b4816fe5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="emulator">
+      <UniqueIdentifier>{7abf0a1e-cf56-466a-9034-241b99d3a1c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="exts">
+      <UniqueIdentifier>{89999c35-752b-484a-87f1-0a52b4ff0f36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="interface">
+      <UniqueIdentifier>{43edbd6e-8635-4c8c-a1d2-a19b37571ec1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cdbhlpr.def">
+      <Filter>interface</Filter>
+    </None>
+  </ItemGroup>
+</Project>
